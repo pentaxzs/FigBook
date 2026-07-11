@@ -38,8 +38,14 @@ export default function SettingsPage() {
 
   const handleReset = async () => {
     if (!confirm('모든 데이터를 삭제할까요? 이 작업은 되돌릴 수 없어요.')) return
-    localStorage.removeItem('metricspad_products')
-    localStorage.removeItem('metricspad_metrics')
+    const [products, metrics] = await Promise.all([
+      storage.getProducts(),
+      storage.getMetrics(),
+    ])
+    await Promise.all([
+      ...products.map(p => storage.deleteProduct(p.id)),
+      ...metrics.map(m => storage.deleteMetric(m.id)),
+    ])
     alert('데이터가 초기화됐어요')
   }
 
@@ -90,6 +96,7 @@ export default function SettingsPage() {
                 />
                 <button
                   onClick={() => setShowKeys(prev => ({ ...prev, [p.key]: !prev[p.key] }))}
+                  aria-label={showKeys[p.key] ? `${p.label} API 키 숨기기` : `${p.label} API 키 보기`}
                   className="px-3 text-gray-400 hover:text-foreground cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   {showKeys[p.key] ? <EyeOff size={16} /> : <Eye size={16} />}
