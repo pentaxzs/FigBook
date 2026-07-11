@@ -1,65 +1,150 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState, useEffect, useCallback } from 'react'
+import { Header } from '@/components/layout/Header'
+import { AllView } from '@/components/views/AllView'
+import { ByProductView } from '@/components/views/ByProductView'
+import { ByMetricView } from '@/components/views/ByMetricView'
+import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
+import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { generateId } from '@/lib/utils/uuid'
+import type { Metric, Product } from '@/types'
+
+type Tab = 'all' | 'by-product' | 'by-metric'
+
+export default function HomePage() {
+  const [tab, setTab] = useState<Tab>('all')
+  const [metrics, setMetrics] = useState<Metric[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<Metric | null>(null)
+  // TODO: Task 10 — ParseResultReview component not yet implemented
+  const [imageParserOpen, setImageParserOpen] = useState(false)
+
+  const load = useCallback(async () => {
+    const [m, p] = await Promise.all([storage.getMetrics(), storage.getProducts()])
+    setMetrics(m)
+    setProducts(p)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const handleTogglePin = async (id: string) => {
+    const metric = metrics.find(m => m.id === id)
+    if (!metric) return
+    await storage.updateMetric(id, { is_pinned: !metric.is_pinned })
+    load()
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('이 지표를 삭제할까요?')) return
+    await storage.deleteMetric(id)
+    load()
+  }
+
+  const handleEdit = (metric: Metric) => {
+    setEditTarget(metric)
+    setSheetOpen(true)
+  }
+
+  const handleAddProduct = async () => {
+    const name = prompt('프로덕트 이름을 입력하세요')
+    if (!name?.trim()) return
+    const product: Product = {
+      id: generateId(),
+      user_id: 'local',
+      name: name.trim(),
+      order: products.length,
+      created_at: new Date().toISOString(),
+    }
+    await storage.saveProduct(product)
+    load()
+  }
+
+  const handleEditProduct = async (product: Product) => {
+    const name = prompt('새 이름을 입력하세요', product.name)
+    if (!name?.trim()) return
+    await storage.updateProduct(product.id, { name: name.trim() })
+    load()
+  }
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm('프로덕트를 삭제하면 관련 지표는 유지됩니다. 삭제할까요?')) return
+    await storage.deleteProduct(id)
+    load()
+  }
+
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'all', label: '전체' },
+    { key: 'by-product', label: '프로덕트별' },
+    { key: 'by-metric', label: '지표별' },
+  ]
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <Header
+        onAddMetric={() => { setEditTarget(null); setSheetOpen(true) }}
+      />
+      <div className="px-4 py-4">
+        {/* 탭 */}
+        <div className="flex gap-1 bg-muted rounded-xl p-1 mb-4">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-150 min-h-[44px] ${
+                tab === t.key
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-500 hover:text-foreground'
+              }`}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {t.label}
+            </button>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+
+        {/* 뷰 */}
+        {tab === 'all' && (
+          <AllView
+            metrics={metrics}
+            products={products}
+            onEdit={handleEdit}
+            onTogglePin={handleTogglePin}
+            onDelete={handleDelete}
+          />
+        )}
+        {tab === 'by-product' && (
+          <ByProductView
+            metrics={metrics}
+            products={products}
+            onEdit={handleEdit}
+            onTogglePin={handleTogglePin}
+            onDelete={handleDelete}
+            onAddProduct={handleAddProduct}
+            onEditProduct={handleEditProduct}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        )}
+        {tab === 'by-metric' && (
+          <ByMetricView
+            metrics={metrics}
+            products={products}
+            onEdit={handleEdit}
+            onTogglePin={handleTogglePin}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
+
+      <AddMetricSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        products={products}
+        editTarget={editTarget}
+        onSaved={load}
+        onOpenImageParser={() => { setSheetOpen(false); setImageParserOpen(true) }}
+      />
+      {/* TODO: Task 10 — ParseResultReview placeholder, imageParserOpen={imageParserOpen} */}
+    </>
+  )
 }
