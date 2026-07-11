@@ -6,6 +6,7 @@ import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
 import { ByMetricView } from '@/components/views/ByMetricView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
+import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product } from '@/types'
@@ -144,7 +145,12 @@ export default function HomePage() {
         onSaved={load}
         onOpenImageParser={() => { setSheetOpen(false); setImageParserOpen(true) }}
       />
-      {/* TODO: Task 10 — ParseResultReview placeholder, imageParserOpen={imageParserOpen} */}
+      <ParseResultReview
+        open={imageParserOpen}
+        onClose={() => setImageParserOpen(false)}
+        products={products}
+        onSaved={load}
+      />
     </>
   )
 }
