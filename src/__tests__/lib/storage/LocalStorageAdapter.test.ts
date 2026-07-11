@@ -13,6 +13,7 @@ const mockMetric: Metric = {
   id: 'metric-1',
   user_id: 'local',
   product_id: 'prod-1',
+  feature_id: 'feat-1',
   name: 'MAU',
   value: '15만',
   unit: '명',

@@ -5,22 +5,26 @@ import { Plus, X, Image } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Modal } from '@/components/ui/Modal'
 import { ProductCombobox } from '@/components/products/ProductCombobox'
+import { FeatureCombobox } from '@/components/products/FeatureCombobox'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { generateId } from '@/lib/utils/uuid'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 interface AddMetricSheetProps {
   open: boolean
   onClose: () => void
   products: Product[]
+  features: Feature[]
   editTarget: Metric | null
   onSaved: () => void
   onOpenImageParser: () => void
   onProductsChanged?: () => void
+  onFeaturesChanged?: () => void
 }
 
 const EMPTY_FORM = {
   product_id: '',
+  feature_id: '',
   name: '',
   value: '',
   unit: '',
@@ -30,7 +34,8 @@ const EMPTY_FORM = {
 }
 
 export function AddMetricSheet({
-  open, onClose, products, editTarget, onSaved, onOpenImageParser, onProductsChanged,
+  open, onClose, products, features, editTarget, onSaved, onOpenImageParser,
+  onProductsChanged, onFeaturesChanged,
 }: AddMetricSheetProps) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [tagInput, setTagInput] = useState('')
@@ -48,6 +53,7 @@ export function AddMetricSheet({
     if (editTarget) {
       setForm({
         product_id: editTarget.product_id,
+        feature_id: editTarget.feature_id,
         name: editTarget.name,
         value: editTarget.value,
         unit: editTarget.unit,
@@ -73,7 +79,7 @@ export function AddMetricSheet({
   }
 
   const handleSave = async () => {
-    if (!form.name || !form.value || !form.product_id) return
+    if (!form.name || !form.value || !form.product_id || !form.feature_id) return
     setSaving(true)
     try {
       if (editTarget) {
@@ -106,8 +112,23 @@ export function AddMetricSheet({
         <ProductCombobox
           products={products}
           value={form.product_id}
-          onChange={(id) => setForm(f => ({ ...f, product_id: id }))}
-          onProductCreated={(p) => { onProductsChanged?.() }}
+          onChange={(id) => setForm(f => ({ ...f, product_id: id, feature_id: '' }))}
+          onProductCreated={() => { onProductsChanged?.() }}
+        />
+      </div>
+
+      {/* 영역/기능 */}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          영역/기능 <span className="text-destructive">*</span>
+        </label>
+        <FeatureCombobox
+          features={features.filter(f => f.product_id === form.product_id)}
+          productId={form.product_id}
+          value={form.feature_id}
+          onChange={(id) => setForm(f => ({ ...f, feature_id: id }))}
+          onFeatureCreated={() => onFeaturesChanged?.()}
+          disabled={!form.product_id}
         />
       </div>
 
@@ -234,7 +255,7 @@ export function AddMetricSheet({
       </button>
       <button
         onClick={handleSave}
-        disabled={saving || !form.name || !form.value || !form.product_id}
+        disabled={saving || !form.name || !form.value || !form.product_id || !form.feature_id}
         className="flex-1 bg-primary text-white rounded-lg py-3 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors min-h-[44px]"
       >
         {saving ? '저장 중...' : editTarget ? '수정' : '저장'}

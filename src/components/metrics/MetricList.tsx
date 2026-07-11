@@ -1,16 +1,20 @@
 import { MetricCard } from './MetricCard'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 interface MetricListProps {
   metrics: Metric[]
   products: Product[]
+  features: Feature[]
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
 }
 
-export function MetricList({ metrics, products, onEdit, onTogglePin, onDelete }: MetricListProps) {
+const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
+
+export function MetricList({ metrics, products, features, onEdit, onTogglePin, onDelete }: MetricListProps) {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+  const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
 
   const sorted = [...metrics].sort((a, b) => {
     if (a.is_pinned && !b.is_pinned) return -1
@@ -34,6 +38,7 @@ export function MetricList({ metrics, products, onEdit, onTogglePin, onDelete }:
           key={metric.id}
           metric={metric}
           product={productMap[metric.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
+          feature={featureMap[metric.feature_id] ?? UNKNOWN_FEATURE}
           onEdit={onEdit}
           onTogglePin={onTogglePin}
           onDelete={onDelete}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Check, X } from 'lucide-react'
 import { QuizCard } from '@/components/quiz/QuizCard'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
-import type { Metric, Product, QuizQuestion, QuizDirection } from '@/types'
+import type { Metric, Product, Feature, QuizQuestion, QuizDirection } from '@/types'
 
 type Phase = 'ready' | 'quiz' | 'answer' | 'done'
 
@@ -14,14 +14,18 @@ interface AnswerResult {
   correct: boolean
 }
 
-function buildQuestions(metrics: Metric[], products: Product[]): QuizQuestion[] {
+const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
+
+function buildQuestions(metrics: Metric[], products: Product[], features: Feature[]): QuizQuestion[] {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+  const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
   const directions: QuizDirection[] = ['name-to-value', 'value-to-name']
   return metrics
     .filter(m => productMap[m.product_id])
     .map(m => ({
       metric: m,
       product: productMap[m.product_id],
+      feature: featureMap[m.feature_id] ?? UNKNOWN_FEATURE,
       direction: directions[Math.floor(Math.random() * 2)],
     }))
     .sort(() => Math.random() - 0.5)
@@ -42,8 +46,8 @@ export default function QuizPage() {
   const [results, setResults] = useState<AnswerResult[]>([])
 
   useEffect(() => {
-    Promise.all([storage.getMetrics(), storage.getProducts()]).then(([m, p]) => {
-      setQuestions(buildQuestions(m, p))
+    Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()]).then(([m, p, f]) => {
+      setQuestions(buildQuestions(m, p, f))
     })
   }, [])
 
@@ -118,7 +122,7 @@ export default function QuizPage() {
         <div className="flex flex-col gap-3 mb-8">
           {results.map((r, i) => (
             <div key={i} className={`p-4 rounded-xl border ${r.correct ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-              <p className="text-xs text-gray-500">{r.question.product.name} &gt; {r.question.metric.name}</p>
+              <p className="text-xs text-gray-500">{r.question.product.name} &gt; {r.question.feature.name} &gt; {r.question.metric.name}</p>
               <p className="text-sm font-mono mt-1">
                 정답: <span className="font-bold">{r.question.direction === 'name-to-value' ? r.question.metric.value : r.question.metric.name}</span>
                 {!r.correct && r.userAnswer && <span className="text-red-500 ml-2">내 답: {r.userAnswer}</span>}

@@ -1,27 +1,28 @@
 'use client'
 
 import { Pin, Pencil, Trash2 } from 'lucide-react'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 interface MetricCardProps {
   metric: Metric
   product: Product
+  feature: Feature
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
 }
 
-export function MetricCard({ metric, product, onEdit, onTogglePin, onDelete }: MetricCardProps) {
+export function MetricCard({ metric, product, feature, onEdit, onTogglePin, onDelete }: MetricCardProps) {
   return (
     <div
       className={`bg-white rounded-xl border p-4 shadow-sm transition-all duration-150 ${
         metric.is_pinned ? 'border-accent/40 shadow-accent/10' : 'border-border'
       }`}
     >
-      {/* 헤더: 프로덕트명 + 기준날짜 */}
+      {/* 헤더: 프로덕트명 > 영역/기능명 + 기준날짜 */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-secondary font-medium">
-          {product.name}
+          {product.name} <span className="text-gray-300 mx-0.5">›</span> {feature.name}
         </span>
         <span className="text-xs text-gray-400 font-mono">{metric.base_date}</span>
       </div>

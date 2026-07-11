@@ -1,13 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MetricCard } from '@/components/metrics/MetricCard'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 const product: Product = {
   id: 'p1', user_id: 'local', name: '카드앱', order: 0, created_at: '',
 }
 
+const feature: Feature = {
+  id: 'f1', user_id: 'local', product_id: 'p1', name: '홈화면 배너', order: 0, created_at: '',
+}
+
 const metric: Metric = {
-  id: 'm1', user_id: 'local', product_id: 'p1',
+  id: 'm1', user_id: 'local', product_id: 'p1', feature_id: 'f1',
   name: 'MAU', value: '15만', unit: '명',
   category: ['retention'], memo: 'Q1 기준',
   base_date: '2025-03', is_pinned: false, created_at: '',
@@ -19,6 +23,7 @@ describe('MetricCard', () => {
       <MetricCard
         metric={metric}
         product={product}
+        feature={feature}
         onEdit={jest.fn()}
         onTogglePin={jest.fn()}
         onDelete={jest.fn()}
@@ -34,6 +39,7 @@ describe('MetricCard', () => {
       <MetricCard
         metric={metric}
         product={product}
+        feature={feature}
         onEdit={jest.fn()}
         onTogglePin={jest.fn()}
         onDelete={jest.fn()}
@@ -48,6 +54,7 @@ describe('MetricCard', () => {
       <MetricCard
         metric={metric}
         product={product}
+        feature={feature}
         onEdit={onEdit}
         onTogglePin={jest.fn()}
         onDelete={jest.fn()}
@@ -63,6 +70,7 @@ describe('MetricCard', () => {
       <MetricCard
         metric={metric}
         product={product}
+        feature={feature}
         onEdit={jest.fn()}
         onTogglePin={onTogglePin}
         onDelete={jest.fn()}
@@ -77,6 +85,7 @@ describe('MetricCard', () => {
       <MetricCard
         metric={{ ...metric, is_pinned: true }}
         product={product}
+        feature={feature}
         onEdit={jest.fn()}
         onTogglePin={jest.fn()}
         onDelete={jest.fn()}

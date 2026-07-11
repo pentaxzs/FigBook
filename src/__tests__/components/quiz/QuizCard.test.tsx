@@ -4,13 +4,16 @@ import type { QuizQuestion } from '@/types'
 
 const question: QuizQuestion = {
   metric: {
-    id: 'm1', user_id: 'local', product_id: 'p1',
+    id: 'm1', user_id: 'local', product_id: 'p1', feature_id: 'f1',
     name: 'MAU', value: '15만', unit: '명',
     category: [], memo: '', base_date: '2025-03',
     is_pinned: false, created_at: '',
   },
   product: {
     id: 'p1', user_id: 'local', name: '카드앱', order: 0, created_at: '',
+  },
+  feature: {
+    id: 'f1', user_id: 'local', product_id: 'p1', name: '홈화면 배너', order: 0, created_at: '',
   },
   direction: 'name-to-value',
 }

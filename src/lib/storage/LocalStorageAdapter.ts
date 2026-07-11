@@ -1,8 +1,9 @@
-import type { Product, Metric, Settings } from '@/types'
+import type { Product, Feature, Metric, Settings } from '@/types'
 import type { StorageService } from './StorageService'
 
 const KEYS = {
   products: 'metricspad_products',
+  features: 'metricspad_features',
   metrics: 'metricspad_metrics',
   settings: 'metricspad_settings',
 } as const
@@ -45,6 +46,26 @@ export class LocalStorageAdapter implements StorageService {
   async deleteProduct(id: string): Promise<void> {
     const products = await this.getProducts()
     write(KEYS.products, products.filter(p => p.id !== id))
+  }
+
+  async getFeatures(productId?: string): Promise<Feature[]> {
+    const features = read<Feature[]>(KEYS.features, [])
+    return productId ? features.filter(f => f.product_id === productId) : features
+  }
+
+  async saveFeature(feature: Feature): Promise<void> {
+    const features = await this.getFeatures()
+    write(KEYS.features, [...features, feature])
+  }
+
+  async updateFeature(id: string, data: Partial<Feature>): Promise<void> {
+    const features = await this.getFeatures()
+    write(KEYS.features, features.map(f => f.id === id ? { ...f, ...data } : f))
+  }
+
+  async deleteFeature(id: string): Promise<void> {
+    const features = await this.getFeatures()
+    write(KEYS.features, features.filter(f => f.id !== id))
   }
 
   async getMetrics(productId?: string): Promise<Metric[]> {

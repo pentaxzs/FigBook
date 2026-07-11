@@ -1,4 +1,4 @@
-import type { Product, Metric, Settings } from '@/types'
+import type { Product, Feature, Metric, Settings } from '@/types'
 
 export interface StorageService {
   // Products
@@ -6,6 +6,12 @@ export interface StorageService {
   saveProduct(product: Product): Promise<void>
   updateProduct(id: string, data: Partial<Product>): Promise<void>
   deleteProduct(id: string): Promise<void>
+
+  // Features
+  getFeatures(productId?: string): Promise<Feature[]>
+  saveFeature(feature: Feature): Promise<void>
+  updateFeature(id: string, data: Partial<Feature>): Promise<void>
+  deleteFeature(id: string): Promise<void>
 
   // Metrics
   getMetrics(productId?: string): Promise<Metric[]>

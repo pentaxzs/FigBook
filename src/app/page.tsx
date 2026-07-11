@@ -9,7 +9,7 @@ import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
 import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { generateId } from '@/lib/utils/uuid'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 type Tab = 'all' | 'by-product' | 'by-metric'
 
@@ -17,15 +17,17 @@ export default function HomePage() {
   const [tab, setTab] = useState<Tab>('all')
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [features, setFeatures] = useState<Feature[]>([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
   // TODO: Task 10 — ParseResultReview component not yet implemented
   const [imageParserOpen, setImageParserOpen] = useState(false)
 
   const load = useCallback(async () => {
-    const [m, p] = await Promise.all([storage.getMetrics(), storage.getProducts()])
+    const [m, p, f] = await Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()])
     setMetrics(m)
     setProducts(p)
+    setFeatures(f)
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -109,6 +111,7 @@ export default function HomePage() {
           <AllView
             metrics={metrics}
             products={products}
+            features={features}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
@@ -118,6 +121,7 @@ export default function HomePage() {
           <ByProductView
             metrics={metrics}
             products={products}
+            features={features}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
@@ -130,6 +134,7 @@ export default function HomePage() {
           <ByMetricView
             metrics={metrics}
             products={products}
+            features={features}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
@@ -141,10 +146,12 @@ export default function HomePage() {
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         products={products}
+        features={features}
         editTarget={editTarget}
         onSaved={load}
         onOpenImageParser={() => { setSheetOpen(false); setImageParserOpen(true) }}
         onProductsChanged={load}
+        onFeaturesChanged={load}
       />
       <ParseResultReview
         open={imageParserOpen}

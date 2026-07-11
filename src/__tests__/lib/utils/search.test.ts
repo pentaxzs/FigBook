@@ -3,13 +3,13 @@ import type { Metric } from '@/types'
 
 const metrics: Metric[] = [
   {
-    id: '1', user_id: 'local', product_id: 'p1',
+    id: '1', user_id: 'local', product_id: 'p1', feature_id: 'f1',
     name: 'MAU', value: '15만', unit: '명',
     category: ['retention'], memo: 'Q1 기준',
     base_date: '2025-03', is_pinned: false, created_at: '',
   },
   {
-    id: '2', user_id: 'local', product_id: 'p2',
+    id: '2', user_id: 'local', product_id: 'p2', feature_id: 'f2',
     name: '클릭률', value: '3.2', unit: '%',
     category: ['engagement'], memo: '',
     base_date: '2025-02', is_pinned: false, created_at: '',

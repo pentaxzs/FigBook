@@ -63,6 +63,7 @@ export function ParseResultReview({ open, onClose, products, onSaved }: ParseRes
       id: generateId(),
       user_id: 'local',
       product_id: selectedProductId,
+      feature_id: '',
       name: p.name!,
       value: p.value!,
       unit: p.unit ?? '',

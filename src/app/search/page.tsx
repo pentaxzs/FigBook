@@ -5,31 +5,35 @@ import { SearchBar } from '@/components/search/SearchBar'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { filterMetrics } from '@/lib/utils/search'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
+
+const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
   const [selectedProductId, setSelectedProductId] = useState('')
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [features, setFeatures] = useState<Feature[]>([])
   const [recent, setRecent] = useState<string[]>([])
   const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    Promise.all([storage.getMetrics(), storage.getProducts()]).then(([m, p]) => {
-      setMetrics(m); setProducts(p)
+    Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()]).then(([m, p, f]) => {
+      setMetrics(m); setProducts(p); setFeatures(f)
     })
     storage.getRecentSearches().then(setRecent)
   }, [])
 
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+  const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
 
   const results = useMemo(() => {
     const base = selectedProductId
       ? metrics.filter(m => m.product_id === selectedProductId)
       : metrics
-    return query.trim() ? filterMetrics(base, query) : []
-  }, [metrics, query, selectedProductId])
+    return query.trim() ? filterMetrics(base, query, features) : []
+  }, [metrics, query, selectedProductId, features])
 
   const handleQueryChange = (q: string) => {
     setQuery(q)
@@ -44,8 +48,8 @@ export default function SearchPage() {
   }
 
   const load = useCallback(async () => {
-    const [m, p] = await Promise.all([storage.getMetrics(), storage.getProducts()])
-    setMetrics(m); setProducts(p)
+    const [m, p, f] = await Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()])
+    setMetrics(m); setProducts(p); setFeatures(f)
   }, [])
 
   const handleTogglePin = async (id: string) => {
@@ -101,6 +105,7 @@ export default function SearchPage() {
                   key={m.id}
                   metric={m}
                   product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
+                  feature={featureMap[m.feature_id] ?? UNKNOWN_FEATURE}
                   onEdit={() => {}}
                   onTogglePin={handleTogglePin}
                   onDelete={handleDelete}

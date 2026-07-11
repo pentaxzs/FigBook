@@ -3,19 +3,23 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { MetricCard } from '@/components/metrics/MetricCard'
-import type { Metric, Product } from '@/types'
+import type { Metric, Product, Feature } from '@/types'
 
 interface ByMetricViewProps {
   metrics: Metric[]
   products: Product[]
+  features: Feature[]
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
 }
 
-export function ByMetricView({ metrics, products, onEdit, onTogglePin, onDelete }: ByMetricViewProps) {
+const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
+
+export function ByMetricView({ metrics, products, features, onEdit, onTogglePin, onDelete }: ByMetricViewProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
+  const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
 
   // 카테고리별 그룹핑 (태그 없는 지표는 '미분류')
   const groups = new Map<string, Metric[]>()
@@ -62,6 +66,7 @@ export function ByMetricView({ metrics, products, onEdit, onTogglePin, onDelete 
                     key={m.id}
                     metric={m}
                     product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
+                    feature={featureMap[m.feature_id] ?? UNKNOWN_FEATURE}
                     onEdit={onEdit}
                     onTogglePin={onTogglePin}
                     onDelete={onDelete}
