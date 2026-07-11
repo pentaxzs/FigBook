@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, X, Image } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Modal } from '@/components/ui/Modal'
+import { ProductCombobox } from '@/components/products/ProductCombobox'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product } from '@/types'
@@ -15,6 +16,7 @@ interface AddMetricSheetProps {
   editTarget: Metric | null
   onSaved: () => void
   onOpenImageParser: () => void
+  onProductsChanged?: () => void
 }
 
 const EMPTY_FORM = {
@@ -28,7 +30,7 @@ const EMPTY_FORM = {
 }
 
 export function AddMetricSheet({
-  open, onClose, products, editTarget, onSaved, onOpenImageParser,
+  open, onClose, products, editTarget, onSaved, onOpenImageParser, onProductsChanged,
 }: AddMetricSheetProps) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [tagInput, setTagInput] = useState('')
@@ -101,13 +103,12 @@ export function AddMetricSheet({
       {/* 프로덕트 선택 */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">프로덕트</label>
-        <select
+        <ProductCombobox
+          products={products}
           value={form.product_id}
-          onChange={e => setForm(f => ({ ...f, product_id: e.target.value }))}
-          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
-        >
-          {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+          onChange={(id) => setForm(f => ({ ...f, product_id: id }))}
+          onProductCreated={(p) => { onProductsChanged?.() }}
+        />
       </div>
 
       {/* 지표명 */}
@@ -220,23 +221,24 @@ export function AddMetricSheet({
         <Image size={16} />
         이미지에서 지표 가져오기
       </button>
+    </div>
+  )
 
-      {/* 저장/취소 */}
-      <div className="flex gap-3 pt-2">
-        <button
-          onClick={onClose}
-          className="flex-1 border border-border rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-muted cursor-pointer transition-colors min-h-[44px]"
-        >
-          취소
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving || !form.name || !form.value || !form.product_id}
-          className="flex-1 bg-primary text-white rounded-lg py-3 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors min-h-[44px]"
-        >
-          {saving ? '저장 중...' : editTarget ? '수정' : '저장'}
-        </button>
-      </div>
+  const footerContent = (
+    <div className="flex gap-3">
+      <button
+        onClick={onClose}
+        className="flex-1 border border-border rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-muted cursor-pointer transition-colors min-h-[44px]"
+      >
+        취소
+      </button>
+      <button
+        onClick={handleSave}
+        disabled={saving || !form.name || !form.value || !form.product_id}
+        className="flex-1 bg-primary text-white rounded-lg py-3 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors min-h-[44px]"
+      >
+        {saving ? '저장 중...' : editTarget ? '수정' : '저장'}
+      </button>
     </div>
   )
 
@@ -245,13 +247,13 @@ export function AddMetricSheet({
   if (!open) return null
   if (isMobile) {
     return (
-      <BottomSheet open={open} onClose={onClose} title={title}>
+      <BottomSheet open={open} onClose={onClose} title={title} fullScreen footer={footerContent}>
         {formContent}
       </BottomSheet>
     )
   }
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={onClose} title={title} footer={footerContent}>
       {formContent}
     </Modal>
   )

@@ -8,9 +8,10 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: React.ReactNode
+  footer?: React.ReactNode
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer }: ModalProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden'
@@ -29,7 +30,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="relative bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-white">
           <h2 className="text-base font-semibold text-foreground">{title}</h2>
           <button
@@ -40,7 +41,12 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             <X size={18} />
           </button>
         </div>
-        <div className="px-6 py-4">{children}</div>
+        <div className="overflow-y-auto px-6 py-4">{children}</div>
+        {footer && (
+          <div className="px-6 pb-6">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -144,6 +144,7 @@ export default function HomePage() {
         editTarget={editTarget}
         onSaved={load}
         onOpenImageParser={() => { setSheetOpen(false); setImageParserOpen(true) }}
+        onProductsChanged={load}
       />
       <ParseResultReview
         open={imageParserOpen}
