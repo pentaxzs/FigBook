@@ -1,23 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { SearchBar } from '@/components/search/SearchBar'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import { filterMetrics } from '@/lib/utils/search'
 import type { Metric, Product } from '@/types'
-
-const RECENT_KEY = 'metricspad_recent_searches'
-const MAX_RECENT = 8
-
-function getRecent(): string[] {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]') } catch { return [] }
-}
-
-function saveRecent(query: string) {
-  const prev = getRecent().filter(q => q !== query)
-  localStorage.setItem(RECENT_KEY, JSON.stringify([query, ...prev].slice(0, MAX_RECENT)))
-}
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
@@ -25,12 +13,13 @@ export default function SearchPage() {
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [recent, setRecent] = useState<string[]>([])
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     Promise.all([storage.getMetrics(), storage.getProducts()]).then(([m, p]) => {
       setMetrics(m); setProducts(p)
     })
-    setRecent(getRecent())
+    storage.getRecentSearches().then(setRecent)
   }, [])
 
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
@@ -44,8 +33,14 @@ export default function SearchPage() {
 
   const handleQueryChange = (q: string) => {
     setQuery(q)
-    if (q.trim().length >= 2) saveRecent(q.trim())
-    setRecent(getRecent())
+    if (q.trim().length >= 2) {
+      if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current)
+      saveDebounceRef.current = setTimeout(async () => {
+        await storage.saveRecentSearch(q.trim())
+        const updated = await storage.getRecentSearches()
+        setRecent(updated)
+      }, 500)
+    }
   }
 
   const load = useCallback(async () => {

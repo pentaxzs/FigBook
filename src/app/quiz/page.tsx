@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Check, X } from 'lucide-react'
 import { QuizCard } from '@/components/quiz/QuizCard'
 import { storage } from '@/lib/storage/LocalStorageAdapter'
 import type { Metric, Product, QuizQuestion, QuizDirection } from '@/types'
@@ -141,7 +142,12 @@ export default function QuizPage() {
     return (
       <div className="px-4 py-4 flex flex-col gap-6">
         <div className={`p-6 rounded-2xl text-center ${correct ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-          <p className="text-3xl mb-2">{correct ? '✓' : '✗'}</p>
+          <div className="flex justify-center mb-2">
+            {correct
+              ? <Check size={20} className="text-green-600" />
+              : <X size={20} className="text-red-500" />
+            }
+          </div>
           <p className="text-base font-bold">{correct ? '정답!' : '오답'}</p>
           {!correct && <p className="text-sm text-gray-600 mt-2">정답: <span className="font-mono font-bold">{correctAnswer}</span></p>}
           {!correct && userAnswer && <p className="text-sm text-red-500 mt-1">내 답: {userAnswer}</p>}

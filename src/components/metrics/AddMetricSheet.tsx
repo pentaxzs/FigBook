@@ -33,6 +33,14 @@ export function AddMetricSheet({
   const [form, setForm] = useState(EMPTY_FORM)
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
+  const [isMobile, setIsMobile] = useState(true)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     if (editTarget) {
@@ -163,7 +171,11 @@ export function AddMetricSheet({
               className="flex items-center gap-1 text-xs bg-muted text-secondary px-2 py-1 rounded-full"
             >
               #{tag}
-              <button onClick={() => removeTag(tag)} className="hover:text-destructive cursor-pointer">
+              <button
+                onClick={() => removeTag(tag)}
+                aria-label={`${tag} 태그 삭제`}
+                className="hover:text-destructive cursor-pointer p-1 min-w-[24px] min-h-[24px] flex items-center justify-center"
+              >
                 <X size={10} />
               </button>
             </span>
@@ -180,6 +192,7 @@ export function AddMetricSheet({
           />
           <button
             onClick={addTag}
+            aria-label="태그 추가"
             className="px-3 py-2 bg-muted text-secondary rounded-lg cursor-pointer hover:bg-border transition-colors min-h-[44px]"
           >
             <Plus size={16} />
@@ -229,14 +242,17 @@ export function AddMetricSheet({
 
   const title = editTarget ? '지표 수정' : '지표 추가'
 
-  return (
-    <>
+  if (!open) return null
+  if (isMobile) {
+    return (
       <BottomSheet open={open} onClose={onClose} title={title}>
         {formContent}
       </BottomSheet>
-      <Modal open={open} onClose={onClose} title={title}>
-        {formContent}
-      </Modal>
-    </>
+    )
+  }
+  return (
+    <Modal open={open} onClose={onClose} title={title}>
+      {formContent}
+    </Modal>
   )
 }

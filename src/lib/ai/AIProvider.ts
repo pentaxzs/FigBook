@@ -1,4 +1,7 @@
 import type { ParsedMetric, Settings } from '@/types'
+import { GeminiProvider } from './GeminiProvider'
+import { OpenAIProvider } from './OpenAIProvider'
+import { AnthropicProvider } from './AnthropicProvider'
 
 export interface AIProvider {
   parseImage(base64Image: string, mimeType: string): Promise<ParsedMetric[]>
@@ -24,18 +27,12 @@ export function createAIProvider(settings: Settings): AIProvider {
   if (!key) throw new Error(`${ai_provider} API 키가 설정되지 않았습니다`)
 
   switch (ai_provider) {
-    case 'gemini': {
-      const { GeminiProvider } = require('./GeminiProvider')
+    case 'gemini':
       return new GeminiProvider(key)
-    }
-    case 'openai': {
-      const { OpenAIProvider } = require('./OpenAIProvider')
+    case 'openai':
       return new OpenAIProvider(key)
-    }
-    case 'anthropic': {
-      const { AnthropicProvider } = require('./AnthropicProvider')
+    case 'anthropic':
       return new AnthropicProvider(key)
-    }
   }
 }
 

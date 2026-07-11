@@ -16,4 +16,9 @@ export interface StorageService {
   // Settings
   getSettings(): Promise<Settings>
   saveSettings(settings: Partial<Settings>): Promise<void>
+
+  // Recent Searches
+  getRecentSearches(): Promise<string[]>
+  saveRecentSearch(query: string): Promise<void>
+  clearRecentSearches(): Promise<void>
 }

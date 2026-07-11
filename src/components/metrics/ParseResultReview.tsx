@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Check, Upload, Loader2 } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Modal } from '@/components/ui/Modal'
@@ -22,6 +22,14 @@ export function ParseResultReview({ open, onClose, products, onSaved }: ParseRes
   const [selectedProductId, setSelectedProductId] = useState(products[0]?.id ?? '')
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [isMobile, setIsMobile] = useState(true)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -116,7 +124,8 @@ export function ParseResultReview({ open, onClose, products, onSaved }: ParseRes
                   onClick={() => setParsed(prev => prev.map((item, idx) =>
                     idx === i ? { ...item, excluded: !item.excluded } : item
                   ))}
-                  className={`p-1.5 rounded-full cursor-pointer transition-colors flex-shrink-0 ${
+                  aria-label={p.excluded ? '지표 포함' : '지표 제외'}
+                  className={`p-2 rounded-full cursor-pointer transition-colors flex-shrink-0 ${
                     p.excluded ? 'bg-muted text-gray-400' : 'bg-primary text-white'
                   }`}
                 >
@@ -163,15 +172,18 @@ export function ParseResultReview({ open, onClose, products, onSaved }: ParseRes
     </div>
   )
 
-  return (
-    <>
+  if (!open) return null
+  if (isMobile) {
+    return (
       <BottomSheet open={open} onClose={onClose} title="이미지에서 지표 가져오기">
         {content}
       </BottomSheet>
-      <Modal open={open} onClose={onClose} title="이미지에서 지표 가져오기">
-        {content}
-      </Modal>
-    </>
+    )
+  }
+  return (
+    <Modal open={open} onClose={onClose} title="이미지에서 지표 가져오기">
+      {content}
+    </Modal>
   )
 }
 

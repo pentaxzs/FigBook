@@ -7,6 +7,8 @@ const KEYS = {
   settings: 'metricspad_settings',
 } as const
 
+const RECENT_KEY = 'metricspad_recent_searches'
+
 const DEFAULT_SETTINGS: Settings = {
   ai_provider: 'openai',
   api_keys: {},
@@ -72,6 +74,25 @@ export class LocalStorageAdapter implements StorageService {
   async saveSettings(data: Partial<Settings>): Promise<void> {
     const current = await this.getSettings()
     write(KEYS.settings, { ...current, ...data })
+  }
+
+  async getRecentSearches(): Promise<string[]> {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
+    } catch {
+      return []
+    }
+  }
+
+  async saveRecentSearch(query: string): Promise<void> {
+    const recent = await this.getRecentSearches()
+    const updated = [query, ...recent.filter(r => r !== query)].slice(0, 8)
+    localStorage.setItem(RECENT_KEY, JSON.stringify(updated))
+  }
+
+  async clearRecentSearches(): Promise<void> {
+    localStorage.removeItem(RECENT_KEY)
   }
 }
 
