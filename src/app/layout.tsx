@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Fira_Sans, Fira_Code } from 'next/font/google'
 import './globals.css'
-// import { BottomNav } from '@/components/layout/BottomNav'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 const firaSans = Fira_Sans({
   subsets: ['latin'],
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="max-w-lg mx-auto pt-14 pb-20 min-h-dvh">
           {children}
         </main>
-        {/* <BottomNav /> */}
+        <BottomNav />
       </body>
     </html>
   )
