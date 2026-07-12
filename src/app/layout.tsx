@@ -18,6 +18,10 @@ const firaCode = Fira_Code({
   display: 'swap',
 })
 
+export const viewport = {
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
   title: 'Metrics Pad',
   description: '프로덕트 지표 메모장',
