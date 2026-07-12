@@ -105,17 +105,17 @@ export default function HomePage() {
         </div>
 
         {/* 추가 버튼 (홈에서만 표시) */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex mb-4 -mx-4">
           <button
             onClick={() => { setEditTarget(null); setSheetOpen(true) }}
-            className="flex-1 flex items-center justify-center gap-2 bg-foreground text-background text-sm font-medium px-4 py-3 min-h-[44px] cursor-pointer hover:bg-foreground/90 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-foreground text-background text-sm font-medium px-4 py-4 min-h-[52px] cursor-pointer hover:bg-foreground/90 transition-colors"
           >
             <Plus size={15} strokeWidth={2} />
             직접 추가
           </button>
           <button
             onClick={() => setImageParserOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 border border-border text-foreground text-sm font-medium px-4 py-3 min-h-[44px] cursor-pointer hover:bg-muted transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-primary text-white text-sm font-medium px-4 py-4 min-h-[52px] cursor-pointer hover:bg-primary/90 transition-colors"
           >
             <ImagePlus size={15} strokeWidth={1.5} />
             이미지로 추가
