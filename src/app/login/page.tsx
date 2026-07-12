@@ -77,6 +77,11 @@ export default function LoginPage() {
             >
               이미 코드를 받았어요
             </button>
+            {!email.trim() && (
+              <p className="text-xs text-secondary/60 text-center -mt-1">
+                코드와 이메일을 매핑하기 위해 이메일을 먼저 입력해주세요
+              </p>
+            )}
           </form>
         ) : (
           <form onSubmit={handleVerifyCode} className="flex flex-col gap-3">

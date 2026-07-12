@@ -12,15 +12,15 @@ interface HeaderProps {
   onToggleView: (v: ViewMode) => void
 }
 
-const PIG_EMOJIS = ['🐷', '🐽', '🐖']
+const SQUIRREL_EMOJIS = ['🐿️', '🐿️', '🐿️']
 
 export function Header({ view, onToggleView }: HeaderProps) {
-  const [pig, setPig] = useState('🐷')
+  const [squirrel, setSquirrel] = useState('🐿️')
   const { user, signOut } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    setPig(PIG_EMOJIS[Math.floor(Math.random() * PIG_EMOJIS.length)])
+    setSquirrel(SQUIRREL_EMOJIS[Math.floor(Math.random() * SQUIRREL_EMOJIS.length)])
   }, [])
 
   const handleSignOut = async () => {
@@ -33,23 +33,25 @@ export function Header({ view, onToggleView }: HeaderProps) {
       <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4">
         <div className="flex items-center gap-1">
           <a href="/" className="text-lg font-bold text-black font-sans tracking-tight hover:opacity-80 transition-opacity">
-            {pig} FigBook
+            {squirrel} Metrics Pad
           </a>
           {user ? (
             <button
               onClick={handleSignOut}
               aria-label="로그아웃"
-              className="ml-1 p-1.5 text-secondary hover:text-foreground cursor-pointer transition-colors"
+              className="ml-2 flex items-center gap-1 text-xs text-secondary hover:text-foreground cursor-pointer transition-colors"
             >
-              <LogOut size={14} />
+              <LogOut size={13} />
+              <span>Log Out</span>
             </button>
           ) : (
             <button
               onClick={() => router.push('/login')}
               aria-label="로그인"
-              className="ml-1 p-1.5 text-secondary hover:text-foreground cursor-pointer transition-colors"
+              className="ml-2 flex items-center gap-1 text-xs text-secondary hover:text-foreground cursor-pointer transition-colors"
             >
-              <LogIn size={14} />
+              <LogIn size={13} />
+              <span>Log In</span>
             </button>
           )}
         </div>
