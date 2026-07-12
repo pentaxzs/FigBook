@@ -50,8 +50,7 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)}
               placeholder="이메일 주소"
               required
-              autoFocus
-              className="w-full border border-border px-4 py-3 text-sm focus:outline-none focus:border-primary bg-surface min-h-[44px]"
+              className="w-full border border-border px-4 py-3 text-base focus:outline-none focus:border-primary bg-surface min-h-[44px]"
             />
             {error && (
               <p className="text-xs text-destructive">{error}</p>
