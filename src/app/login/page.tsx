@@ -69,6 +69,14 @@ export default function LoginPage() {
             >
               {loading ? '전송 중...' : '인증 코드 받기'}
             </button>
+            <button
+              type="button"
+              onClick={() => { if (email.trim()) setStep('code') }}
+              disabled={!email.trim()}
+              className="text-xs text-secondary text-center py-2 cursor-pointer disabled:opacity-30"
+            >
+              이미 코드를 받았어요
+            </button>
           </form>
         ) : (
           <form onSubmit={handleVerifyCode} className="flex flex-col gap-3">
