@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase/client'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
-  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [step, setStep] = useState<'email' | 'sent'>('email')
+  const [showCodeInput, setShowCodeInput] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -23,7 +24,8 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      setStep('code')
+      setStep('sent')
+      setShowCodeInput(false)
     }
   }
 
@@ -69,49 +71,55 @@ export default function LoginPage() {
             >
               {loading ? '전송 중...' : '로그인 이메일 받기'}
             </button>
-            <button
-              type="button"
-              onClick={() => { if (email.trim()) setStep('code') }}
-              disabled={!email.trim()}
-              className="text-xs text-secondary text-center py-2 cursor-pointer disabled:opacity-30"
-            >
-              이미 코드를 받았어요
-            </button>
-            {!email.trim() && (
-              <p className="text-xs text-secondary/60 text-center -mt-1">
-                코드와 이메일을 매핑하기 위해 이메일을 먼저 입력해주세요
-              </p>
-            )}
           </form>
         ) : (
-          <form onSubmit={handleVerifyCode} className="flex flex-col gap-3">
-            <p className="text-xs text-secondary">
-              <span className="font-mono">{email}</span>로 6자리 코드를 보냈어요
-            </p>
-            <input
-              type="number"
-              value={code}
-              onChange={e => setCode(e.target.value)}
-              placeholder="6자리 코드 입력"
-              required
-              className="w-full border border-border px-4 py-3 text-base focus:outline-none focus:border-primary bg-surface min-h-[44px] font-mono tracking-widest"
-            />
-            {error && <p className="text-xs text-destructive">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || code.trim().length < 6}
-              className="w-full bg-primary text-white py-3 text-sm font-medium disabled:opacity-50 cursor-pointer min-h-[44px]"
-            >
-              {loading ? '확인 중...' : '로그인'}
-            </button>
+          <div className="flex flex-col gap-4">
+            <div className="bg-surface border border-border px-4 py-4 flex flex-col gap-1">
+              <p className="text-sm font-medium text-foreground">이메일을 확인하세요</p>
+              <p className="text-xs text-secondary">
+                <span className="font-mono">{email}</span>로 로그인 링크를 보냈어요.
+                이메일의 링크를 클릭하면 바로 로그인돼요.
+              </p>
+            </div>
+
+            {!showCodeInput ? (
+              <button
+                type="button"
+                onClick={() => setShowCodeInput(true)}
+                className="text-xs text-secondary text-center py-2 cursor-pointer underline underline-offset-2"
+              >
+                6자리 코드를 받은 경우 여기에 입력
+              </button>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="flex flex-col gap-3">
+                <input
+                  type="number"
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  placeholder="6자리 코드 입력"
+                  required
+                  autoFocus
+                  className="w-full border border-border px-4 py-3 text-base focus:outline-none focus:border-primary bg-surface min-h-[44px] font-mono tracking-widest"
+                />
+                {error && <p className="text-xs text-destructive">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading || code.trim().length < 6}
+                  className="w-full bg-primary text-white py-3 text-sm font-medium disabled:opacity-50 cursor-pointer min-h-[44px]"
+                >
+                  {loading ? '확인 중...' : '코드로 로그인'}
+                </button>
+              </form>
+            )}
+
             <button
               type="button"
-              onClick={() => { setStep('email'); setCode(''); setError('') }}
+              onClick={() => { setStep('email'); setCode(''); setError(''); setShowCodeInput(false) }}
               className="text-xs text-secondary text-center py-2 cursor-pointer"
             >
               이메일 다시 입력
             </button>
-          </form>
+          </div>
         )}
       </div>
     </div>
