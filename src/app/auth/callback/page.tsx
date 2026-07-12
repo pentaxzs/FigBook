@@ -25,21 +25,23 @@ export default function AuthCallbackPage() {
     const token_hash = searchParams.get('token_hash')
     const type = searchParams.get('type')
 
+    const go = (path: string) => window.location.replace(path)
+
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token }).then(({ data: { session } }) => {
-        router.replace(session ? '/' : '/login')
+        go(session ? '/' : '/login')
       })
     } else if (token_hash && type) {
       supabase.auth.verifyOtp({ token_hash, type: type as 'magiclink' | 'email' }).then(({ data: { session } }) => {
-        router.replace(session ? '/' : '/login')
+        go(session ? '/' : '/login')
       })
     } else if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ data: { session } }) => {
-        router.replace(session ? '/' : '/login')
+        go(session ? '/' : '/login')
       })
     } else {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        router.replace(session ? '/' : '/login')
+        go(session ? '/' : '/login')
       })
     }
   }, [router])
