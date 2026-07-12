@@ -8,12 +8,28 @@ export default function AuthCallbackPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    let unsubscribe: (() => void) | null = null
+
+    const init = async () => {
+      // Hash token may already be processed — check session first
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         router.replace('/')
+        return
       }
-    })
-    return () => subscription.unsubscribe()
+
+      // Otherwise wait for onAuthStateChange to fire
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          router.replace('/')
+        }
+      })
+      unsubscribe = () => subscription.unsubscribe()
+    }
+
+    init()
+
+    return () => { unsubscribe?.() }
   }, [router])
 
   return (
