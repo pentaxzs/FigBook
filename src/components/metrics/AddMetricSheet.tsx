@@ -170,36 +170,34 @@ export function AddMetricSheet({
         </div>
       </div>
 
-      {/* 카테고리 + 기준날짜 (2열) */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">카테고리</label>
-          <div className="flex gap-1">
-            <input
-              type="text"
-              value={tagInput}
-              onChange={e => setTagInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
-              placeholder="retention..."
-              className="flex-1 min-w-0 border border-border rounded-lg px-2 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
-            />
-            <button
-              onClick={addTag}
-              aria-label="태그 추가"
-              className="px-2 bg-muted text-secondary rounded-lg cursor-pointer hover:bg-border transition-colors min-h-[44px] min-w-[36px] flex items-center justify-center shrink-0"
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">기준 날짜</label>
+      {/* 기준날짜 + 카테고리 */}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">기준 날짜</label>
+        <input
+          type="month"
+          value={form.base_date}
+          onChange={e => setForm(f => ({ ...f, base_date: e.target.value }))}
+          className={inputCls}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">카테고리</label>
+        <div className="flex gap-1">
           <input
-            type="month"
-            value={form.base_date}
-            onChange={e => setForm(f => ({ ...f, base_date: e.target.value }))}
-            className={inputCls}
+            type="text"
+            value={tagInput}
+            onChange={e => setTagInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
+            placeholder="retention..."
+            className="flex-1 min-w-0 border border-border rounded-lg px-2 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
           />
+          <button
+            onClick={addTag}
+            aria-label="태그 추가"
+            className="px-2 bg-muted text-secondary rounded-lg cursor-pointer hover:bg-border transition-colors min-h-[44px] min-w-[36px] flex items-center justify-center shrink-0"
+          >
+            <Plus size={14} />
+          </button>
         </div>
       </div>
 
