@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Eye, EyeOff, Download, Trash2 } from 'lucide-react'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import type { Settings } from '@/types'
 
 const PROVIDERS: { key: Settings['ai_provider']; label: string }[] = [

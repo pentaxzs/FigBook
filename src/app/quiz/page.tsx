@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Check, X } from 'lucide-react'
 import { QuizCard } from '@/components/quiz/QuizCard'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import type { Metric, Product, Feature, QuizQuestion, QuizDirection } from '@/types'
 
 type Phase = 'ready' | 'quiz' | 'answer' | 'done'

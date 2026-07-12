@@ -6,7 +6,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Modal } from '@/components/ui/Modal'
 import { ProductCombobox } from '@/components/products/ProductCombobox'
 import { FeatureCombobox } from '@/components/products/FeatureCombobox'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product, Feature } from '@/types'
 

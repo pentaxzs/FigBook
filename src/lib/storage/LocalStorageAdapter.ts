@@ -116,6 +116,3 @@ export class LocalStorageAdapter implements StorageService {
     localStorage.removeItem(RECENT_KEY)
   }
 }
-
-// 싱글톤 인스턴스 (앱 전체에서 재사용)
-export const storage = new LocalStorageAdapter()

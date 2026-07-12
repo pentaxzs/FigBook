@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Plus } from 'lucide-react'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import { generateId } from '@/lib/utils/uuid'
 import type { Product } from '@/types'
 

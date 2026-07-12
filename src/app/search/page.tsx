@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { SearchBar } from '@/components/search/SearchBar'
 import { MetricCard } from '@/components/metrics/MetricCard'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import { filterMetrics } from '@/lib/utils/search'
 import type { Metric, Product, Feature } from '@/types'
 

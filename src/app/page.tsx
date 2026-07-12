@@ -8,7 +8,7 @@ import { ByProductView } from '@/components/views/ByProductView'
 import { ByMetricView } from '@/components/views/ByMetricView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
 import { ParseResultReview } from '@/components/metrics/ParseResultReview'
-import { storage } from '@/lib/storage/LocalStorageAdapter'
+import { storage } from '@/lib/storage'
 import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product, Feature } from '@/types'
 
