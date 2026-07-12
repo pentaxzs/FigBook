@@ -19,8 +19,12 @@ const firaCode = Fira_Code({
 })
 
 export const metadata: Metadata = {
-  title: 'FigBook',
+  title: 'Metrics Pad',
   description: '프로덕트 지표 메모장',
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
