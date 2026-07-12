@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp, LayoutList, LayoutGrid } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ProductSubTabs } from '@/components/products/ProductSubTabs'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import type { Metric, Product, Feature } from '@/types'
 
 type ViewMode = 'list' | 'grid'
-const VIEW_KEY = 'figbook_view_mode'
 
 interface ByProductViewProps {
   metrics: Metric[]
   products: Product[]
   features: Feature[]
+  view: ViewMode
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
@@ -24,22 +24,11 @@ interface ByProductViewProps {
 const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
 
 export function ByProductView({
-  metrics, products, features, onEdit, onTogglePin, onDelete,
+  metrics, products, features, view, onEdit, onTogglePin, onDelete,
   onAddProduct, onEditProduct, onDeleteProduct,
 }: ByProductViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(products[0]?.id ?? null)
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
-  const [view, setView] = useState<ViewMode>('grid')
-
-  useEffect(() => {
-    const saved = localStorage.getItem(VIEW_KEY) as ViewMode | null
-    if (saved === 'grid' || saved === 'list') setView(saved)
-  }, [])
-
-  const toggleView = (next: ViewMode) => {
-    setView(next)
-    localStorage.setItem(VIEW_KEY, next)
-  }
 
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
@@ -84,20 +73,6 @@ export function ByProductView({
         onEdit={onEditProduct}
         onDelete={onDeleteProduct}
       />
-      {/* 뷰 토글 */}
-      <div className="flex justify-end mt-3 mb-1">
-        <div className="flex border border-border">
-          <button onClick={() => toggleView('list')} aria-label="리스트 보기"
-            className={`px-2.5 py-1.5 text-xs transition-colors cursor-pointer border-r border-border ${view === 'list' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
-            <LayoutList size={14} />
-          </button>
-          <button onClick={() => toggleView('grid')} aria-label="그리드 보기"
-            className={`px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${view === 'grid' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
-            <LayoutGrid size={14} />
-          </button>
-        </div>
-      </div>
-
       <div className="mt-2">
         {productFeatures.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-secondary text-center border-t border-border">

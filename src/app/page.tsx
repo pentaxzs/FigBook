@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, ImagePlus } from 'lucide-react'
+import { Plus, ImagePlus, LayoutList, LayoutGrid } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
@@ -13,15 +13,28 @@ import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product, Feature } from '@/types'
 
 type Tab = 'all' | 'by-product' | 'by-metric'
+type ViewMode = 'list' | 'grid'
+const VIEW_KEY = 'figbook_view_mode'
 
 export default function HomePage() {
   const [tab, setTab] = useState<Tab>('all')
+  const [view, setView] = useState<ViewMode>('grid')
   const [metrics, setMetrics] = useState<Metric[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [features, setFeatures] = useState<Feature[]>([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
   const [imageParserOpen, setImageParserOpen] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(VIEW_KEY) as ViewMode | null
+    if (saved === 'grid' || saved === 'list') setView(saved)
+  }, [])
+
+  const toggleView = (next: ViewMode) => {
+    setView(next)
+    localStorage.setItem(VIEW_KEY, next)
+  }
 
   const load = useCallback(async () => {
     const [m, p, f] = await Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()])
@@ -88,20 +101,32 @@ export default function HomePage() {
       <Header />
       <div className="px-4 py-4">
         {/* 탭 */}
-        <div className="flex border-b border-border mb-4">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 py-3 text-sm font-medium transition-colors cursor-pointer min-h-[44px] border-b-2 -mb-px ${
-                tab === t.key
-                  ? 'border-foreground text-foreground'
-                  : 'border-transparent text-secondary hover:text-foreground'
-              }`}
-            >
-              {t.label}
+        <div className="flex items-center border-b border-border mb-4">
+          <div className="flex flex-1">
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex-1 py-3 text-sm font-medium transition-colors cursor-pointer min-h-[44px] border-b-2 -mb-px ${
+                  tab === t.key
+                    ? 'border-foreground text-foreground'
+                    : 'border-transparent text-secondary hover:text-foreground'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex border border-border mb-px">
+            <button onClick={() => toggleView('list')} aria-label="리스트 보기"
+              className={`px-2.5 py-1.5 transition-colors cursor-pointer border-r border-border ${view === 'list' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
+              <LayoutList size={14} />
             </button>
-          ))}
+            <button onClick={() => toggleView('grid')} aria-label="그리드 보기"
+              className={`px-2.5 py-1.5 transition-colors cursor-pointer ${view === 'grid' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
+              <LayoutGrid size={14} />
+            </button>
+          </div>
         </div>
 
         {/* 추가 버튼 (홈에서만 표시) */}
@@ -128,6 +153,7 @@ export default function HomePage() {
             metrics={metrics}
             products={products}
             features={features}
+            view={view}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
@@ -138,6 +164,7 @@ export default function HomePage() {
             metrics={metrics}
             products={products}
             features={features}
+            view={view}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
@@ -151,6 +178,7 @@ export default function HomePage() {
             metrics={metrics}
             products={products}
             features={features}
+            view={view}
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}

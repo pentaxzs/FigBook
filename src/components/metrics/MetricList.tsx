@@ -1,7 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { LayoutList, LayoutGrid } from 'lucide-react'
 import { MetricCard } from './MetricCard'
 import type { Metric, Product, Feature } from '@/types'
 
@@ -11,6 +9,7 @@ interface MetricListProps {
   metrics: Metric[]
   products: Product[]
   features: Feature[]
+  view: ViewMode
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
@@ -18,21 +17,8 @@ interface MetricListProps {
 
 const UNKNOWN_PRODUCT: Product = { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }
 const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
-const VIEW_KEY = 'figbook_view_mode'
 
-export function MetricList({ metrics, products, features, onEdit, onTogglePin, onDelete }: MetricListProps) {
-  const [view, setView] = useState<ViewMode>('grid')
-
-  useEffect(() => {
-    const saved = localStorage.getItem(VIEW_KEY) as ViewMode | null
-    if (saved === 'grid' || saved === 'list') setView(saved)
-  }, [])
-
-  const toggleView = (next: ViewMode) => {
-    setView(next)
-    localStorage.setItem(VIEW_KEY, next)
-  }
-
+export function MetricList({ metrics, products, features, view, onEdit, onTogglePin, onDelete }: MetricListProps) {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
 
@@ -53,20 +39,6 @@ export function MetricList({ metrics, products, features, onEdit, onTogglePin, o
 
   return (
     <div>
-      {/* 뷰 토글 */}
-      <div className="flex justify-end mb-3">
-        <div className="flex border border-border">
-          <button onClick={() => toggleView('list')} aria-label="리스트 보기"
-            className={`px-2.5 py-1.5 text-xs transition-colors cursor-pointer border-r border-border ${view === 'list' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
-            <LayoutList size={14} />
-          </button>
-          <button onClick={() => toggleView('grid')} aria-label="그리드 보기"
-            className={`px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${view === 'grid' ? 'bg-foreground text-background' : 'bg-surface text-secondary hover:text-foreground'}`}>
-            <LayoutGrid size={14} />
-          </button>
-        </div>
-      </div>
-
       {/* 카드 목록 */}
       {view === 'grid' ? (
         <div className="grid grid-cols-2 gap-px bg-border">
