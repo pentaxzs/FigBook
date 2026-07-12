@@ -98,7 +98,7 @@ export function FeatureCombobox({
             value={inputText}
             onChange={e => setInputText(e.target.value)}
             placeholder="검색 또는 새로 만들기..."
-            className="w-full px-3 py-2 text-sm border-b border-border focus:outline-none"
+            className="w-full px-3 py-2 text-base border-b border-border focus:outline-none"
             autoFocus
           />
 

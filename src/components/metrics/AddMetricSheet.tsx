@@ -100,7 +100,7 @@ export function AddMetricSheet({
     }
   }
 
-  const inputCls = "w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
+  const inputCls = "w-full border border-border rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
 
   const formContent = (
     <div className="flex flex-col gap-3">

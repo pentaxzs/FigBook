@@ -19,7 +19,7 @@ export function SearchBar({
       <select
         value={selectedProductId}
         onChange={e => onProductChange(e.target.value)}
-        className="border-r border-border px-3 py-3 text-sm text-foreground bg-muted focus:outline-none cursor-pointer min-h-[44px]"
+        className="border-r border-border px-3 py-3 text-base text-foreground bg-muted focus:outline-none cursor-pointer min-h-[44px]"
       >
         <option value="">전체</option>
         {products.map(p => (
@@ -33,7 +33,7 @@ export function SearchBar({
           value={query}
           onChange={e => onQueryChange(e.target.value)}
           placeholder="지표 검색..."
-          className="flex-1 px-2 py-3 text-sm focus:outline-none min-h-[44px] bg-surface"
+          className="flex-1 px-2 py-3 text-base focus:outline-none min-h-[44px] bg-surface"
           autoFocus
         />
       </div>
