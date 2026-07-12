@@ -67,7 +67,7 @@ export default function LoginPage() {
               disabled={loading || !email.trim()}
               className="w-full bg-primary text-white py-3 text-sm font-medium disabled:opacity-50 cursor-pointer min-h-[44px]"
             >
-              {loading ? '전송 중...' : '인증 코드 받기'}
+              {loading ? '전송 중...' : '로그인 이메일 받기'}
             </button>
             <button
               type="button"
