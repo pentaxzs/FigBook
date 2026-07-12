@@ -29,7 +29,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-4">
+    <div className="-mt-14 -mb-20 h-dvh bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold font-mono mb-1 text-foreground">🐷 FigBook</h1>
         <p className="text-sm text-secondary mb-8">프로덕트 지표를 기록하고 팔로업하세요</p>
