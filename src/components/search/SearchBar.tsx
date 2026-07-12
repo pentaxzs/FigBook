@@ -15,7 +15,7 @@ export function SearchBar({
   query, onQueryChange, products, selectedProductId, onProductChange,
 }: SearchBarProps) {
   return (
-    <div className="flex items-center gap-0 border border-border rounded-xl overflow-hidden bg-white shadow-sm">
+    <div className="flex items-center border border-border overflow-hidden bg-surface">
       <select
         value={selectedProductId}
         onChange={e => onProductChange(e.target.value)}
@@ -27,13 +27,13 @@ export function SearchBar({
         ))}
       </select>
       <div className="flex items-center flex-1 px-3">
-        <Search size={16} className="text-gray-400 flex-shrink-0" />
+        <Search size={16} className="text-secondary flex-shrink-0" />
         <input
           type="text"
           value={query}
           onChange={e => onQueryChange(e.target.value)}
           placeholder="지표 검색..."
-          className="flex-1 px-2 py-3 text-sm focus:outline-none min-h-[44px]"
+          className="flex-1 px-2 py-3 text-sm focus:outline-none min-h-[44px] bg-surface"
           autoFocus
         />
       </div>

@@ -55,12 +55,12 @@ export default function SettingsPage() {
 
       {/* AI 제공자 선택 */}
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">AI 제공자</h3>
-        <div className="flex flex-col gap-2">
+        <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">AI 제공자</h3>
+        <div className="flex flex-col gap-px bg-border">
           {PROVIDERS.map(p => (
             <label
               key={p.key}
-              className="flex items-center gap-3 p-4 bg-white border border-border rounded-xl cursor-pointer hover:border-primary/30 transition-colors"
+              className="flex items-center gap-3 p-4 bg-surface cursor-pointer hover:bg-muted transition-colors"
             >
               <input
                 type="radio"
@@ -78,12 +78,12 @@ export default function SettingsPage() {
 
       {/* API 키 (제공자별) */}
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">API Keys</h3>
+        <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">API Keys</h3>
         <div className="flex flex-col gap-3">
           {PROVIDERS.map(p => (
             <div key={p.key}>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{p.label}</label>
-              <div className="flex items-center border border-border rounded-xl overflow-hidden bg-white">
+              <label className="block text-xs font-medium text-secondary mb-1">{p.label}</label>
+              <div className="flex items-center border border-border overflow-hidden bg-surface">
                 <input
                   type={showKeys[p.key] ? 'text' : 'password'}
                   value={settings.api_keys[p.key] ?? ''}
@@ -92,12 +92,12 @@ export default function SettingsPage() {
                     api_keys: { ...s.api_keys, [p.key]: e.target.value },
                   }))}
                   placeholder={`${p.label} API Key`}
-                  className="flex-1 px-4 py-3 text-sm font-mono focus:outline-none min-h-[44px]"
+                  className="flex-1 px-4 py-3 text-sm font-mono focus:outline-none min-h-[44px] bg-surface"
                 />
                 <button
                   onClick={() => setShowKeys(prev => ({ ...prev, [p.key]: !prev[p.key] }))}
                   aria-label={showKeys[p.key] ? `${p.label} API 키 숨기기` : `${p.label} API 키 보기`}
-                  className="px-3 text-gray-400 hover:text-foreground cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="px-3 text-secondary hover:text-foreground cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center border-l border-border"
                 >
                   {showKeys[p.key] ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -105,12 +105,12 @@ export default function SettingsPage() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-2">API 키는 이 기기에만 저장되며 외부로 전송되지 않아요</p>
+        <p className="text-xs text-secondary mt-2">API 키는 이 기기에만 저장되며 외부로 전송되지 않아요</p>
         <button
           onClick={handleSave}
-          className={`mt-3 w-full py-3 rounded-xl text-sm font-medium cursor-pointer transition-colors min-h-[44px] ${
+          className={`mt-3 w-full py-3 text-sm font-medium cursor-pointer transition-colors min-h-[44px] ${
             saved
-              ? 'bg-green-100 text-green-700'
+              ? 'bg-muted text-foreground border border-border'
               : 'bg-primary text-white hover:bg-primary/90'
           }`}
         >
@@ -120,18 +120,18 @@ export default function SettingsPage() {
 
       {/* 데이터 관리 */}
       <section>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">데이터 관리</h3>
-        <div className="flex flex-col gap-2">
+        <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">데이터 관리</h3>
+        <div className="flex flex-col gap-px bg-border">
           <button
             onClick={handleExport}
-            className="flex items-center gap-3 p-4 bg-white border border-border rounded-xl text-sm font-medium cursor-pointer hover:bg-muted transition-colors min-h-[44px]"
+            className="flex items-center gap-3 p-4 bg-surface text-sm font-medium cursor-pointer hover:bg-muted transition-colors min-h-[44px]"
           >
             <Download size={16} className="text-secondary" />
             전체 내보내기 (JSON)
           </button>
           <button
             onClick={handleReset}
-            className="flex items-center gap-3 p-4 bg-white border border-destructive/30 rounded-xl text-sm font-medium text-destructive cursor-pointer hover:bg-destructive/10 transition-colors min-h-[44px]"
+            className="flex items-center gap-3 p-4 bg-surface text-sm font-medium text-destructive cursor-pointer hover:bg-destructive/10 transition-colors min-h-[44px]"
           >
             <Trash2 size={16} />
             전체 초기화

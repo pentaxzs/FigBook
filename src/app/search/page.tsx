@@ -78,25 +78,25 @@ export default function SearchPage() {
       <div className="mt-4">
         {!query.trim() ? (
           <div>
-            <p className="text-xs font-medium text-gray-400 mb-2">최근 검색어</p>
+            <p className="text-xs font-medium text-secondary mb-2">최근 검색어</p>
             <div className="flex flex-wrap gap-2">
               {recent.map(q => (
                 <button
                   key={q}
                   onClick={() => setQuery(q)}
-                  className="text-sm px-3 py-1.5 bg-muted rounded-full text-foreground hover:bg-border cursor-pointer"
+                  className="text-sm px-3 py-1.5 bg-muted border border-border text-foreground hover:bg-border cursor-pointer transition-colors"
                 >
                   {q}
                 </button>
               ))}
               {recent.length === 0 && (
-                <p className="text-sm text-gray-400">최근 검색어가 없어요</p>
+                <p className="text-sm text-secondary">최근 검색어가 없어요</p>
               )}
             </div>
           </div>
         ) : (
           <div>
-            <p className="text-xs text-gray-400 mb-3">
+            <p className="text-xs text-secondary mb-3">
               {results.length > 0 ? `결과 ${results.length}개` : '검색 결과가 없어요'}
             </p>
             <div className="flex flex-col gap-3">
