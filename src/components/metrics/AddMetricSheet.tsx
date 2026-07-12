@@ -181,7 +181,7 @@ export function AddMetricSheet({
               onChange={e => setTagInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())}
               placeholder="retention..."
-              className="flex-1 min-w-0 border border-border rounded-lg px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
+              className="flex-1 min-w-0 border border-border rounded-lg px-2 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
             />
             <button
               onClick={addTag}
