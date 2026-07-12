@@ -38,12 +38,11 @@ export class SupabaseAdapter implements StorageService {
   // ── Features ──────────────────────────────────────────────────────────────
 
   async getFeatures(productId?: string): Promise<Feature[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = this.supabase
+    let query = this.supabase
       .from('features')
       .select('*')
       .order('order', { ascending: true })
-    if (productId) query = query.eq('product_id', productId)
+    if (productId) query = query.eq('product_id', productId) as typeof query
     const { data } = await query
     return (data ?? []) as Feature[]
   }
@@ -65,12 +64,11 @@ export class SupabaseAdapter implements StorageService {
   // ── Metrics ───────────────────────────────────────────────────────────────
 
   async getMetrics(productId?: string): Promise<Metric[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = this.supabase
+    let query = this.supabase
       .from('metrics')
       .select('*')
       .order('created_at', { ascending: false })
-    if (productId) query = query.eq('product_id', productId)
+    if (productId) query = query.eq('product_id', productId) as typeof query
     const { data } = await query
     return ((data ?? []) as (Metric & { feature_id: string | null })[]).map(row => ({
       ...row,
