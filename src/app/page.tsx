@@ -105,7 +105,7 @@ export default function HomePage() {
         </div>
 
         {/* 추가 버튼 (홈에서만 표시) */}
-        <div className="flex mb-4 -mx-4">
+        <div className="flex mb-4">
           <button
             onClick={() => { setEditTarget(null); setSheetOpen(true) }}
             className="flex-1 flex items-center justify-center gap-2 bg-foreground text-background text-sm font-medium px-4 py-4 min-h-[52px] cursor-pointer hover:bg-foreground/90 transition-colors"
