@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, ImagePlus } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, ImagePlus, RefreshCw } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
@@ -9,6 +9,7 @@ import { ByMetricView } from '@/components/views/ByMetricView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
 import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product, Feature } from '@/types'
 
@@ -16,7 +17,10 @@ type Tab = 'all' | 'by-product' | 'by-metric'
 type ViewMode = 'list' | 'grid'
 const VIEW_KEY = 'figbook_view_mode'
 
+const PULL_THRESHOLD = 64
+
 export default function HomePage() {
+  const { user } = useAuth()
   const [tab, setTab] = useState<Tab>('all')
   const [view, setView] = useState<ViewMode>('grid')
   const [metrics, setMetrics] = useState<Metric[]>([])
@@ -25,6 +29,10 @@ export default function HomePage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
   const [imageParserOpen, setImageParserOpen] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [pullY, setPullY] = useState(0)
+  const touchStartY = useRef(0)
+  const pulling = useRef(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(VIEW_KEY) as ViewMode | null
@@ -43,7 +51,44 @@ export default function HomePage() {
     setFeatures(f)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  // Re-load whenever the auth user changes (fixes race with Supabase adapter swap)
+  useEffect(() => { load() }, [load, user])
+
+  // Pull-to-refresh touch handlers
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        touchStartY.current = e.touches[0].clientY
+        pulling.current = true
+      }
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (!pulling.current) return
+      const dy = e.touches[0].clientY - touchStartY.current
+      if (dy > 0) {
+        setPullY(Math.min(dy * 0.5, PULL_THRESHOLD))
+      }
+    }
+    const onTouchEnd = async () => {
+      if (!pulling.current) return
+      pulling.current = false
+      if (pullY >= PULL_THRESHOLD) {
+        setRefreshing(true)
+        await load()
+        setRefreshing(false)
+      }
+      setPullY(0)
+    }
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true })
+    document.addEventListener('touchmove', onTouchMove, { passive: true })
+    document.addEventListener('touchend', onTouchEnd)
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart)
+      document.removeEventListener('touchmove', onTouchMove)
+      document.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [load, pullY])
 
   const handleTogglePin = async (id: string) => {
     const metric = metrics.find(m => m.id === id)
@@ -96,10 +141,29 @@ export default function HomePage() {
     { key: 'by-metric', label: '지표별' },
   ]
 
+  const pullProgress = Math.min(pullY / PULL_THRESHOLD, 1)
+
   return (
     <>
+      {/* Pull-to-refresh indicator */}
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="fixed top-14 left-0 right-0 z-30 flex items-center justify-center transition-all"
+          style={{ height: refreshing ? 40 : pullY, opacity: refreshing ? 1 : pullProgress }}
+        >
+          <RefreshCw
+            size={18}
+            className={`text-secondary ${refreshing ? 'animate-spin' : ''}`}
+            style={{ transform: `rotate(${pullProgress * 180}deg)` }}
+          />
+        </div>
+      )}
+
       <Header view={view} onToggleView={toggleView} />
-      <div className="px-4 py-4">
+      <div
+        className="px-4 py-4 transition-transform"
+        style={{ transform: pullY > 0 ? `translateY(${pullY}px)` : undefined }}
+      >
         {/* 탭 */}
         <div className="flex border-b border-border mb-4">
           {TABS.map(t => (
