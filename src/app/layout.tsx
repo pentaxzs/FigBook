@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans, Fira_Code } from 'next/font/google'
 import './globals.css'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { AuthProvider } from '@/components/auth/AuthProvider'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className={`${notoSans.variable} ${firaCode.variable}`}>
       <body className="bg-background min-h-dvh font-sans">
-        <main className="max-w-lg mx-auto pt-14 pb-20 min-h-dvh">
-          {children}
-        </main>
-        <BottomNav />
+        <AuthProvider>
+          <main className="max-w-lg mx-auto pt-14 pb-20 min-h-dvh">
+            {children}
+          </main>
+          <BottomNav />
+        </AuthProvider>
       </body>
     </html>
   )
