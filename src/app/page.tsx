@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { Plus, ImagePlus } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
@@ -20,7 +21,6 @@ export default function HomePage() {
   const [features, setFeatures] = useState<Feature[]>([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
-  // TODO: Task 10 — ParseResultReview component not yet implemented
   const [imageParserOpen, setImageParserOpen] = useState(false)
 
   const load = useCallback(async () => {
@@ -85,25 +85,41 @@ export default function HomePage() {
 
   return (
     <>
-      <Header
-        onAddMetric={() => { setEditTarget(null); setSheetOpen(true) }}
-      />
+      <Header />
       <div className="px-4 py-4">
         {/* 탭 */}
-        <div className="flex gap-1 bg-muted rounded-xl p-1 mb-4">
+        <div className="flex border-b border-border mb-4">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-150 min-h-[44px] ${
+              className={`flex-1 py-3 text-sm font-medium transition-colors cursor-pointer min-h-[44px] border-b-2 -mb-px ${
                 tab === t.key
-                  ? 'bg-white text-primary shadow-sm'
-                  : 'text-gray-500 hover:text-foreground'
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-secondary hover:text-foreground'
               }`}
             >
               {t.label}
             </button>
           ))}
+        </div>
+
+        {/* 추가 버튼 (홈에서만 표시) */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => { setEditTarget(null); setSheetOpen(true) }}
+            className="flex-1 flex items-center justify-center gap-2 bg-foreground text-background text-sm font-medium px-4 py-3 min-h-[44px] cursor-pointer hover:bg-foreground/90 transition-colors"
+          >
+            <Plus size={15} strokeWidth={2} />
+            직접 추가
+          </button>
+          <button
+            onClick={() => setImageParserOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 border border-border text-foreground text-sm font-medium px-4 py-3 min-h-[44px] cursor-pointer hover:bg-muted transition-colors"
+          >
+            <ImagePlus size={15} strokeWidth={1.5} />
+            이미지로 추가
+          </button>
         </div>
 
         {/* 뷰 */}
@@ -149,7 +165,6 @@ export default function HomePage() {
         features={features}
         editTarget={editTarget}
         onSaved={load}
-        onOpenImageParser={() => { setSheetOpen(false); setImageParserOpen(true) }}
         onProductsChanged={load}
         onFeaturesChanged={load}
       />

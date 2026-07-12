@@ -64,13 +64,14 @@ describe('MetricCard', () => {
     expect(onEdit).toHaveBeenCalledWith(metric)
   })
 
-  it('핀 버튼 클릭 시 onTogglePin 호출', () => {
+  it('핀 버튼 클릭 시 onTogglePin 호출 (list view)', () => {
     const onTogglePin = jest.fn()
     render(
       <MetricCard
         metric={metric}
         product={product}
         feature={feature}
+        view="list"
         onEdit={jest.fn()}
         onTogglePin={onTogglePin}
         onDelete={jest.fn()}
@@ -80,17 +81,18 @@ describe('MetricCard', () => {
     expect(onTogglePin).toHaveBeenCalledWith('m1')
   })
 
-  it('is_pinned true 시 핀 아이콘 활성화 스타일', () => {
-    const { container } = render(
+  it('is_pinned true 시 핀 아이콘 표시 (list view)', () => {
+    render(
       <MetricCard
         metric={{ ...metric, is_pinned: true }}
         product={product}
         feature={feature}
+        view="list"
         onEdit={jest.fn()}
         onTogglePin={jest.fn()}
         onDelete={jest.fn()}
       />
     )
-    expect(container.querySelector('[data-pinned="true"]')).toBeInTheDocument()
+    expect(screen.getByLabelText('핀 고정')).toBeInTheDocument()
   })
 })
