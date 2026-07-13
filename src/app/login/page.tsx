@@ -16,13 +16,13 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { shouldCreateUser: true },
     })
     setLoading(false)
-    if (error) {
-      setError(error.message)
+    if (otpError) {
+      setError(otpError.message || JSON.stringify(otpError))
     } else {
       setStep('sent')
       setShowCodeInput(false)
