@@ -16,17 +16,27 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const result = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true },
-    })
-    setLoading(false)
-    if (result.error) {
-      const msg = result.error.message || result.error.name || ''
-      setError(msg || `오류: ${JSON.stringify(result.error, Object.getOwnPropertyNames(result.error))}`)
-    } else {
-      setStep('sent')
-      setShowCodeInput(false)
+    try {
+      const result = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: true },
+      })
+      alert(JSON.stringify({
+        err: result.error ? { msg: result.error.message, status: result.error.status, name: result.error.name } : null,
+        data: result.data,
+      }))
+      if (result.error) {
+        setError(result.error.message || result.error.status?.toString() || '알 수 없는 오류')
+      } else {
+        setStep('sent')
+        setShowCodeInput(false)
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('catch: ' + msg)
+      setError(msg)
+    } finally {
+      setLoading(false)
     }
   }
 
