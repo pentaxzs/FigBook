@@ -16,13 +16,14 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const { error: otpError } = await supabase.auth.signInWithOtp({
+    const result = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { shouldCreateUser: true },
     })
     setLoading(false)
-    if (otpError) {
-      setError(otpError.message || JSON.stringify(otpError))
+    if (result.error) {
+      const msg = result.error.message || result.error.name || ''
+      setError(msg || `오류: ${JSON.stringify(result.error, Object.getOwnPropertyNames(result.error))}`)
     } else {
       setStep('sent')
       setShowCodeInput(false)
