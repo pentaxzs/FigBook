@@ -20,7 +20,7 @@ const VIEW_KEY = 'figbook_view_mode'
 const PULL_THRESHOLD = 64
 
 export default function HomePage() {
-  const { user } = useAuth()
+  const { ready } = useAuth()
   const [tab, setTab] = useState<Tab>('all')
   const [view, setView] = useState<ViewMode>('grid')
   const [metrics, setMetrics] = useState<Metric[]>([])
@@ -51,8 +51,8 @@ export default function HomePage() {
     setFeatures(f)
   }, [])
 
-  // Re-load whenever the auth user changes (fixes race with Supabase adapter swap)
-  useEffect(() => { load() }, [load, user])
+  // Load data only after auth is ready (adapter set correctly)
+  useEffect(() => { if (ready) load() }, [load, ready])
 
   // Pull-to-refresh touch handlers
   useEffect(() => {

@@ -10,11 +10,13 @@ import { migrateLocalToSupabase } from '@/lib/storage/migration'
 
 interface AuthContextValue {
   user: User | null
+  ready: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
+  ready: false,
   signOut: async () => {},
 })
 
@@ -24,6 +26,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [ready, setReady] = useState(false)
 
   async function activateSupabase(u: User) {
     const adapter = new SupabaseAdapter(supabase, u.id)
@@ -35,7 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) activateSupabase(session.user)
+      if (session?.user) {
+        activateSupabase(session.user).then(() => setReady(true))
+      } else {
+        setReady(true)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -56,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, signOut }}>
+    <AuthContext.Provider value={{ user, ready, signOut }}>
       {children}
     </AuthContext.Provider>
   )
