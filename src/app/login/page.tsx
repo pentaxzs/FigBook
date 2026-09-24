@@ -15,15 +15,20 @@ export default function LoginPage() {
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { shouldCreateUser: true },
-    })
-    setLoading(false)
-    if (otpError) {
-      setError(otpError.message || '이메일 전송에 실패했어요.')
-    } else {
-      setStep('code')
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: true },
+      })
+      setLoading(false)
+      if (otpError) {
+        setError(otpError.message || '이메일 전송에 실패했어요.')
+      } else {
+        setStep('code')
+      }
+    } catch {
+      setLoading(false)
+      setError('supabase_down')
     }
   }
 
@@ -61,7 +66,26 @@ export default function LoginPage() {
               required
               className="w-full border border-border px-4 py-3 text-base focus:outline-none focus:border-primary bg-surface min-h-[44px]"
             />
-            {error && <p className="text-xs text-destructive">{error}</p>}
+            {error && error !== 'supabase_down' && (
+              <p className="text-xs text-destructive">{error}</p>
+            )}
+            {error === 'supabase_down' && (
+              <div className="text-left bg-muted p-3 flex flex-col gap-2">
+                <p className="text-xs text-destructive font-medium">서버에 연결할 수 없어요</p>
+                <p className="text-xs text-secondary leading-relaxed">
+                  Supabase 프로젝트가 일시정지되었을 수 있어요.<br />
+                  대시보드에서 프로젝트를 복원해주세요.
+                </p>
+                <a
+                  href="https://supabase.com/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary font-medium underline"
+                >
+                  Supabase 대시보드 열기 →
+                </a>
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading || !email.trim()}

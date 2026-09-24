@@ -25,7 +25,16 @@ export async function proxy(request: NextRequest) {
     },
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Supabase unreachable (paused, DNS failure, etc.) — let the request through
+    // so AuthProvider can show a proper error UI instead of a blank page
+    return response
+  }
+
   const { pathname } = request.nextUrl
 
   const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/auth')
