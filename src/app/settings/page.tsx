@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, Download, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Download, Trash2, ChevronRight, Package } from 'lucide-react'
+import Link from 'next/link'
 import { storage } from '@/lib/storage'
 import type { Settings } from '@/types'
 
@@ -116,6 +117,21 @@ export default function SettingsPage() {
         >
           {saved ? '저장됐어요!' : '저장'}
         </button>
+      </section>
+
+      {/* 프로덕트 관리 */}
+      <section>
+        <h3 className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">프로덕트</h3>
+        <div className="flex flex-col gap-px bg-border">
+          <Link
+            href="/products"
+            className="flex items-center gap-3 p-4 bg-surface text-sm font-medium cursor-pointer hover:bg-muted transition-colors min-h-[44px]"
+          >
+            <Package size={16} className="text-secondary" />
+            <span className="flex-1">프로덕트 관리</span>
+            <ChevronRight size={16} className="text-border" />
+          </Link>
+        </div>
       </section>
 
       {/* 데이터 관리 */}
