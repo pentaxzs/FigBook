@@ -10,7 +10,6 @@ import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
 import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage'
 import { useAuth } from '@/components/auth/AuthProvider'
-import { generateId } from '@/lib/utils/uuid'
 import type { Metric, Product, Feature } from '@/types'
 
 type Tab = 'all' | 'by-product' | 'by-metric'
@@ -108,69 +107,6 @@ export default function HomePage() {
     setSheetOpen(true)
   }
 
-  const mergeProduct = async (sourceId: string, targetId: string) => {
-    const allMetrics = await storage.getMetrics()
-    const allFeatures = await storage.getFeatures()
-    for (const m of allMetrics.filter(m => m.product_id === sourceId)) {
-      await storage.updateMetric(m.id, { product_id: targetId })
-    }
-    for (const f of allFeatures.filter(f => f.product_id === sourceId)) {
-      await storage.updateFeature(f.id, { product_id: targetId })
-    }
-    await storage.deleteProduct(sourceId)
-  }
-
-  const handleAddProduct = async () => {
-    const name = prompt('프로덕트 이름을 입력하세요')
-    if (!name?.trim()) return
-    const existing = products.find(p => p.name === name.trim())
-    if (existing) {
-      alert('이미 존재하는 프로덕트 이름이에요.')
-      return
-    }
-    const product: Product = {
-      id: generateId(),
-      user_id: 'local',
-      name: name.trim(),
-      order: products.length,
-      created_at: new Date().toISOString(),
-    }
-    await storage.saveProduct(product)
-    load()
-  }
-
-  const handleEditProduct = async (product: Product) => {
-    const name = prompt('새 이름을 입력하세요', product.name)
-    if (!name?.trim() || name.trim() === product.name) return
-    const existing = products.find(p => p.name === name.trim() && p.id !== product.id)
-    if (existing) {
-      if (confirm(`"${name.trim()}" 프로덕트가 이미 있어요. 기존 프로덕트에 통합할까요?`)) {
-        await mergeProduct(product.id, existing.id)
-        load()
-      }
-      return
-    }
-    await storage.updateProduct(product.id, { name: name.trim() })
-    load()
-  }
-
-  const handleDeleteProduct = async (id: string) => {
-    const productMetrics = metrics.filter(m => m.product_id === id)
-    const productFeatures = features.filter(f => f.product_id === id)
-    const count = productMetrics.length
-    const msg = count > 0
-      ? `이 프로덕트를 삭제하면 하위 지표 ${count}개는 전체 탭에서 확인할 수 있어요. 삭제할까요?`
-      : '이 프로덕트를 삭제할까요?'
-    if (!confirm(msg)) return
-    for (const m of productMetrics) {
-      await storage.updateMetric(m.id, { product_id: '', feature_id: '' })
-    }
-    for (const f of productFeatures) {
-      await storage.deleteFeature(f.id)
-    }
-    await storage.deleteProduct(id)
-    load()
-  }
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'all', label: '전체' },
@@ -257,9 +193,6 @@ export default function HomePage() {
             onEdit={handleEdit}
             onTogglePin={handleTogglePin}
             onDelete={handleDelete}
-            onAddProduct={handleAddProduct}
-            onEditProduct={handleEditProduct}
-            onDeleteProduct={handleDeleteProduct}
           />
         )}
         {tab === 'by-metric' && (

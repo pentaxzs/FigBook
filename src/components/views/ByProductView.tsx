@@ -16,16 +16,12 @@ interface ByProductViewProps {
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
-  onAddProduct: () => void
-  onEditProduct: (product: Product) => void
-  onDeleteProduct: (id: string) => void
 }
 
 const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
 
 export function ByProductView({
   metrics, products, features, view, onEdit, onTogglePin, onDelete,
-  onAddProduct, onEditProduct, onDeleteProduct,
 }: ByProductViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(products[0]?.id ?? null)
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -69,9 +65,6 @@ export function ByProductView({
         products={products}
         selectedId={selectedId}
         onSelect={setSelectedId}
-        onAdd={onAddProduct}
-        onEdit={onEditProduct}
-        onDelete={onDeleteProduct}
       />
       <div className="mt-2">
         {productFeatures.length === 0 ? (
