@@ -54,16 +54,25 @@ export default function HomePage() {
   useEffect(() => { if (ready) load() }, [load, ready])
 
   // Pull-to-refresh touch handlers
+  const touchStartX = useRef(0)
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
       if (window.scrollY === 0) {
         touchStartY.current = e.touches[0].clientY
+        touchStartX.current = e.touches[0].clientX
         pulling.current = true
       }
     }
     const onTouchMove = (e: TouchEvent) => {
       if (!pulling.current) return
+      const dx = Math.abs(e.touches[0].clientX - touchStartX.current)
       const dy = e.touches[0].clientY - touchStartY.current
+      // 수평 이동이 수직보다 크면 가로 스크롤로 판단 → pull-to-refresh 취소
+      if (dx > Math.abs(dy)) {
+        pulling.current = false
+        setPullY(0)
+        return
+      }
       if (dy > 0) {
         setPullY(Math.min(dy * 0.5, PULL_THRESHOLD))
       }

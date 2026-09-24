@@ -35,6 +35,7 @@ export function ProductSubTabs({
         WebkitOverflowScrolling: 'touch',
         overscrollBehaviorX: 'contain',
         scrollbarWidth: 'none',
+        touchAction: 'pan-x pinch-zoom',
       }}
     >
       {products.map(p => (
