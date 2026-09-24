@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { ArrowLeft, Plus, GripVertical, Pencil, Trash2 } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ArrowLeft, Plus, GripVertical, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { storage } from '@/lib/storage'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -15,6 +15,13 @@ export default function ProductsPage() {
   const [features, setFeatures] = useState<Feature[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+
+  // 드래그 상태
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [overIndex, setOverIndex] = useState<number | null>(null)
+  const dragY = useRef(0)
+  const itemRects = useRef<DOMRect[]>([])
+  const listRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
     const [p, m, f] = await Promise.all([
@@ -31,6 +38,67 @@ export default function ProductsPage() {
 
   const countForProduct = (id: string) => metrics.filter(m => m.product_id === id).length
 
+  // --- 순서 저장 ---
+  const saveOrder = async (reordered: Product[]) => {
+    for (let i = 0; i < reordered.length; i++) {
+      if (reordered[i].order !== i) {
+        await storage.updateProduct(reordered[i].id, { order: i })
+      }
+    }
+  }
+
+  // --- 드래그 핸들러 (터치) ---
+  const onDragStart = (index: number, clientY: number) => {
+    if (editingId) return
+    setDragIndex(index)
+    setOverIndex(index)
+    dragY.current = clientY
+    // 각 아이템의 위치 기록
+    if (listRef.current) {
+      const children = listRef.current.children
+      itemRects.current = Array.from(children).map(c => c.getBoundingClientRect())
+    }
+  }
+
+  const onDragMove = (clientY: number) => {
+    if (dragIndex === null) return
+    const rects = itemRects.current
+    // 현재 Y 위치에서 가장 가까운 인덱스 찾기
+    let closest = dragIndex
+    for (let i = 0; i < rects.length; i++) {
+      const mid = rects[i].top + rects[i].height / 2
+      if (clientY < mid) { closest = i; break }
+      closest = i
+    }
+    setOverIndex(closest)
+  }
+
+  const onDragEnd = async () => {
+    if (dragIndex === null || overIndex === null || dragIndex === overIndex) {
+      setDragIndex(null)
+      setOverIndex(null)
+      return
+    }
+    const reordered = [...products]
+    const [moved] = reordered.splice(dragIndex, 1)
+    reordered.splice(overIndex, 0, moved)
+    setProducts(reordered)
+    setDragIndex(null)
+    setOverIndex(null)
+    await saveOrder(reordered)
+  }
+
+  // --- PC: 위/아래 버튼으로 이동 ---
+  const moveProduct = async (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= products.length) return
+    const reordered = [...products]
+    ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
+    setProducts(reordered)
+    await saveOrder(reordered)
+  }
+
+  // --- 추가/편집/삭제 ---
   const handleAdd = async () => {
     const name = prompt('프로덕트 이름을 입력하세요')
     if (!name?.trim()) return
@@ -63,7 +131,6 @@ export default function ProductsPage() {
     const existing = products.find(p => p.name === trimmed && p.id !== product.id)
     if (existing) {
       if (confirm(`"${trimmed}" 프로덕트가 이미 있어요. 기존 프로덕트에 통합할까요?`)) {
-        // 통합: source → target
         const allMetrics = await storage.getMetrics()
         const allFeatures = await storage.getFeatures()
         for (const m of allMetrics.filter(m => m.product_id === product.id)) {
@@ -103,6 +170,15 @@ export default function ProductsPage() {
     load()
   }
 
+  // 드래그 중 미리보기용 순서 계산
+  const displayProducts = (() => {
+    if (dragIndex === null || overIndex === null || dragIndex === overIndex) return products
+    const reordered = [...products]
+    const [moved] = reordered.splice(dragIndex, 1)
+    reordered.splice(overIndex, 0, moved)
+    return reordered
+  })()
+
   return (
     <div className="px-4 py-4">
       {/* 헤더 */}
@@ -118,18 +194,48 @@ export default function ProductsPage() {
       </div>
 
       {/* 리스트 */}
-      <div className="flex flex-col">
-        {products.map(product => {
+      <div ref={listRef} className="flex flex-col">
+        {displayProducts.map((product, index) => {
           const count = countForProduct(product.id)
           const isEditing = editingId === product.id
+          const isDragging = dragIndex !== null && product.id === products[dragIndex]?.id
 
           return (
             <div
               key={product.id}
-              className="flex items-center gap-3 py-3 border-b border-border"
+              className={`flex items-center gap-2 py-3 border-b border-border transition-colors ${
+                isDragging ? 'bg-muted/60' : ''
+              }`}
             >
-              <GripVertical size={16} className="text-border flex-shrink-0" />
+              {/* 드래그 핸들 (모바일: 터치 드래그) */}
+              <div
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none"
+                onTouchStart={e => {
+                  e.stopPropagation()
+                  onDragStart(index, e.touches[0].clientY)
+                }}
+                onTouchMove={e => {
+                  e.stopPropagation()
+                  onDragMove(e.touches[0].clientY)
+                }}
+                onTouchEnd={() => onDragEnd()}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  onDragStart(index, e.clientY)
+                  const onMove = (ev: MouseEvent) => onDragMove(ev.clientY)
+                  const onUp = () => {
+                    onDragEnd()
+                    window.removeEventListener('mousemove', onMove)
+                    window.removeEventListener('mouseup', onUp)
+                  }
+                  window.addEventListener('mousemove', onMove)
+                  window.addEventListener('mouseup', onUp)
+                }}
+              >
+                <GripVertical size={16} className="text-secondary" />
+              </div>
 
+              {/* 내용 */}
               <div className="flex-1 min-w-0">
                 {isEditing ? (
                   <input
@@ -152,8 +258,28 @@ export default function ProductsPage() {
                 )}
               </div>
 
+              {/* 액션 버튼 */}
               {!isEditing && (
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-0.5 flex-shrink-0">
+                  {/* PC: 위/아래 이동 버튼 */}
+                  <div className="hidden sm:flex flex-col">
+                    <button
+                      onClick={() => moveProduct(index, -1)}
+                      disabled={index === 0}
+                      className="w-8 h-5 flex items-center justify-center text-secondary hover:text-foreground disabled:opacity-20 cursor-pointer disabled:cursor-default transition-colors"
+                      aria-label="위로 이동"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      onClick={() => moveProduct(index, 1)}
+                      disabled={index === displayProducts.length - 1}
+                      className="w-8 h-5 flex items-center justify-center text-secondary hover:text-foreground disabled:opacity-20 cursor-pointer disabled:cursor-default transition-colors"
+                      aria-label="아래로 이동"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                  </div>
                   <button
                     onClick={() => startEdit(product)}
                     className="w-10 h-10 flex items-center justify-center text-secondary hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
