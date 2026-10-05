@@ -47,7 +47,7 @@ export function BottomSheet({ open, onClose, title, children, fullScreen, footer
             </button>
           </div>
           {/* 스크롤 가능한 컨텐츠 */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4">{children}</div>
           {/* 푸터 */}
           {footer && (
             <div className="border-t border-border bg-white px-4 py-4">
@@ -68,7 +68,7 @@ export function BottomSheet({ open, onClose, title, children, fullScreen, footer
         aria-hidden="true"
       />
       {/* 시트 */}
-      <div className="relative bg-white rounded-t-2xl max-h-[90dvh] overflow-y-auto">
+      <div className="relative bg-white rounded-t-2xl max-h-[90dvh] overflow-y-auto overflow-x-hidden">
         <div className="flex items-center justify-between px-4 py-4 border-b border-border sticky top-0 bg-white">
           <h2 className="text-base font-semibold text-foreground">{title}</h2>
           <button
