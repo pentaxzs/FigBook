@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, Download, Trash2, ChevronRight, Package } from 'lucide-react'
+import { Eye, EyeOff, Download, Trash2, ChevronRight, Package, Layers } from 'lucide-react'
 import Link from 'next/link'
 import { storage } from '@/lib/storage'
 import type { Settings } from '@/types'
@@ -129,6 +129,14 @@ export default function SettingsPage() {
           >
             <Package size={16} className="text-secondary" />
             <span className="flex-1">프로덕트 관리</span>
+            <ChevronRight size={16} className="text-border" />
+          </Link>
+          <Link
+            href="/features"
+            className="flex items-center gap-3 p-4 bg-surface text-sm font-medium cursor-pointer hover:bg-muted transition-colors min-h-[44px]"
+          >
+            <Layers size={16} className="text-secondary" />
+            <span className="flex-1">영역/기능 관리</span>
             <ChevronRight size={16} className="text-border" />
           </Link>
         </div>

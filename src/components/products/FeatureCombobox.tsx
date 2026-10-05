@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, Plus, Pencil } from 'lucide-react'
+import Link from 'next/link'
 import { storage } from '@/lib/storage'
 import { generateId } from '@/lib/utils/uuid'
 import type { Feature } from '@/types'
@@ -24,7 +25,6 @@ export function FeatureCombobox({
 
   const selectedFeature = features.find(f => f.id === value)
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -77,7 +77,6 @@ export function FeatureCombobox({
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Trigger button */}
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
@@ -89,10 +88,8 @@ export function FeatureCombobox({
         <ChevronDown size={16} className="text-gray-400 shrink-0" />
       </button>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-          {/* Filter input */}
           <input
             type="text"
             value={inputText}
@@ -102,7 +99,6 @@ export function FeatureCombobox({
             autoFocus
           />
 
-          {/* Feature options */}
           {filtered.map(f => (
             <div
               key={f.id}
@@ -115,14 +111,12 @@ export function FeatureCombobox({
             </div>
           ))}
 
-          {/* Empty state */}
           {filtered.length === 0 && !showCreateOption && (
             <div className="px-3 py-2.5 text-sm text-gray-400">
               검색 결과 없음
             </div>
           )}
 
-          {/* Create option */}
           {showCreateOption && (
             <div
               onClick={handleCreate}
@@ -132,6 +126,15 @@ export function FeatureCombobox({
               + &ldquo;{inputText}&rdquo; 영역/기능으로 추가
             </div>
           )}
+
+          <Link
+            href="/features"
+            className="flex items-center gap-2 px-3 py-2.5 text-sm text-secondary hover:bg-muted cursor-pointer border-t border-border"
+            onClick={() => setOpen(false)}
+          >
+            <Pencil size={13} />
+            편집하기
+          </Link>
         </div>
       )}
     </div>
