@@ -76,6 +76,7 @@ export function ParseResultReview({ open, onClose, products, onSaved }: ParseRes
     for (const m of metrics) await storage.saveMetric(m)
     onSaved()
     onClose()
+    window.scrollTo(0, 0)
     setStep('upload')
     setParsed([])
   }

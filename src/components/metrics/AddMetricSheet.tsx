@@ -95,6 +95,7 @@ export function AddMetricSheet({
       }
       onSaved()
       onClose()
+      window.scrollTo(0, 0)
     } finally {
       setSaving(false)
     }
@@ -103,7 +104,7 @@ export function AddMetricSheet({
   const inputCls = "w-full max-w-full border border-border rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[44px]"
 
   const formContent = (
-    <div className="flex flex-col gap-3 overflow-hidden">
+    <div className="flex flex-col gap-3">
       {/* 프로덕트 */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">프로덕트</label>
