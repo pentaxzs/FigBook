@@ -1,13 +1,17 @@
 'use client'
 
-import { Pin, Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Pin, Pencil, Trash2, TrendingUp } from 'lucide-react'
+import { TrendChart } from './TrendChart'
 import type { Metric, Product, Feature } from '@/types'
+import type { TrendPoint } from '@/lib/utils/trend'
 
 interface MetricCardProps {
   metric: Metric
   product: Product
   feature: Feature
   view?: 'list' | 'grid'
+  trendPoints?: TrendPoint[]
   onEdit: (metric: Metric) => void
   onTogglePin: (id: string) => void
   onDelete: (id: string) => void
@@ -22,29 +26,30 @@ function formatValue(value: string): string {
   return value
 }
 
-export function MetricCard({ metric, product, feature, view = 'grid', onEdit, onTogglePin, onDelete }: MetricCardProps) {
+export function MetricCard({ metric, product, feature, view = 'grid', trendPoints, onEdit, onTogglePin, onDelete }: MetricCardProps) {
+  const [showTrend, setShowTrend] = useState(false)
   const isGrid = view === 'grid'
+  const hasTrend = trendPoints && trendPoints.length >= 2
 
   if (isGrid) {
     return (
       <div className={`bg-surface border border-border p-3 flex flex-col gap-1.5 ${metric.is_pinned ? 'border-primary/40' : ''}`}>
-        {/* breadcrumb + date */}
         <div className="flex items-start justify-between gap-1">
           <span className="text-[10px] text-secondary leading-tight truncate">
             {product.name} › {feature.name}
           </span>
           {metric.is_pinned && <Pin size={9} className="text-primary shrink-0 mt-0.5" fill="currentColor" />}
         </div>
-        {/* metric name */}
         <p className="text-xs font-semibold text-foreground leading-tight">{metric.name}</p>
-        {/* value */}
-        <div className="flex items-baseline gap-1 mt-auto">
+        <div
+          className={`flex items-baseline gap-1 mt-auto ${hasTrend ? 'cursor-pointer' : ''}`}
+          onClick={hasTrend ? () => setShowTrend(v => !v) : undefined}
+        >
           <span className="text-lg font-bold font-mono text-foreground">{formatValue(metric.value)}</span>
           <span className="text-xs text-secondary">{metric.unit}</span>
+          {hasTrend && <TrendingUp size={10} className="text-primary ml-auto shrink-0" />}
         </div>
-        {/* date */}
         <p className="text-[10px] text-secondary font-mono">{metric.base_date}</p>
-        {/* tags */}
         {metric.category.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {metric.category.slice(0, 2).map(tag => (
@@ -55,7 +60,11 @@ export function MetricCard({ metric, product, feature, view = 'grid', onEdit, on
             {metric.category.length > 2 && <span className="text-[10px] text-secondary">+{metric.category.length - 2}</span>}
           </div>
         )}
-        {/* actions */}
+        {showTrend && hasTrend && (
+          <div className="border-t border-border pt-2 -mx-1">
+            <TrendChart points={trendPoints} unit={metric.unit} height={100} highlightId={metric.id} />
+          </div>
+        )}
         <div className="flex items-center justify-end gap-0 border-t border-border/60 pt-1.5 mt-0.5 -mx-0.5">
           <button onClick={() => onEdit(metric)} aria-label="편집"
             className="p-1.5 text-secondary hover:text-foreground transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center">
@@ -70,7 +79,6 @@ export function MetricCard({ metric, product, feature, view = 'grid', onEdit, on
     )
   }
 
-  // List view — flat row with border-b
   return (
     <div className={`border-b border-border py-4 ${metric.is_pinned ? 'bg-primary/3' : ''}`}>
       <div className="flex items-start justify-between mb-1">
@@ -83,8 +91,14 @@ export function MetricCard({ metric, product, feature, view = 'grid', onEdit, on
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold text-foreground mb-0.5">{metric.name}</p>
+        <div
+          className={`flex-1 min-w-0 ${hasTrend ? 'cursor-pointer' : ''}`}
+          onClick={hasTrend ? () => setShowTrend(v => !v) : undefined}
+        >
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <p className="text-sm font-semibold text-foreground">{metric.name}</p>
+            {hasTrend && <TrendingUp size={12} className="text-primary shrink-0" />}
+          </div>
           <div className="flex items-baseline gap-1">
             <span className="text-xl font-bold font-mono text-foreground">{formatValue(metric.value)}</span>
             <span className="text-sm text-secondary">{metric.unit}</span>
@@ -105,6 +119,11 @@ export function MetricCard({ metric, product, feature, view = 'grid', onEdit, on
           </button>
         </div>
       </div>
+      {showTrend && hasTrend && (
+        <div className="mt-3 border border-border rounded-lg p-3 bg-muted/30">
+          <TrendChart points={trendPoints} unit={metric.unit} height={140} highlightId={metric.id} />
+        </div>
+      )}
       {metric.category.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {metric.category.map(tag => (

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ProductSubTabs } from '@/components/products/ProductSubTabs'
 import { MetricCard } from '@/components/metrics/MetricCard'
+import { getSiblingPoints } from '@/lib/utils/trend'
 import type { Metric, Product, Feature } from '@/types'
 
 type ViewMode = 'list' | 'grid'
@@ -28,6 +29,17 @@ export function ByProductView({
 
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
+
+  const trendMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof getSiblingPoints>>()
+    for (const m of metrics) {
+      const key = `${m.product_id}:${m.feature_id}:${m.name}`
+      if (!map.has(key)) {
+        map.set(key, getSiblingPoints(m, metrics))
+      }
+    }
+    return map
+  }, [metrics])
 
   // Metrics filtered by selected product
   const productMetrics = selectedId
@@ -104,6 +116,7 @@ export function ByProductView({
                             metric={m}
                             product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
                             feature={featureMap[m.feature_id] ?? UNKNOWN_FEATURE}
+                            trendPoints={trendMap.get(`${m.product_id}:${m.feature_id}:${m.name}`)}
                             view={view}
                             onEdit={onEdit}
                             onTogglePin={onTogglePin}
@@ -119,6 +132,7 @@ export function ByProductView({
                             metric={m}
                             product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
                             feature={featureMap[m.feature_id] ?? UNKNOWN_FEATURE}
+                            trendPoints={trendMap.get(`${m.product_id}:${m.feature_id}:${m.name}`)}
                             view={view}
                             onEdit={onEdit}
                             onTogglePin={onTogglePin}
@@ -167,6 +181,7 @@ export function ByProductView({
                             metric={m}
                             product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
                             feature={UNKNOWN_FEATURE}
+                            trendPoints={trendMap.get(`${m.product_id}:${m.feature_id}:${m.name}`)}
                             view={view}
                             onEdit={onEdit}
                             onTogglePin={onTogglePin}
@@ -182,6 +197,7 @@ export function ByProductView({
                             metric={m}
                             product={productMap[m.product_id] ?? { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }}
                             feature={UNKNOWN_FEATURE}
+                            trendPoints={trendMap.get(`${m.product_id}:${m.feature_id}:${m.name}`)}
                             view={view}
                             onEdit={onEdit}
                             onTogglePin={onTogglePin}

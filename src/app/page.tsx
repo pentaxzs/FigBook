@@ -5,7 +5,7 @@ import { Plus, ImagePlus, RefreshCw } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
-import { ByMetricView } from '@/components/views/ByMetricView'
+import { TrendView } from '@/components/views/TrendView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
 import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage'
@@ -120,7 +120,7 @@ export default function HomePage() {
   const TABS: { key: Tab; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'by-product', label: '프로덕트별' },
-    { key: 'by-metric', label: '지표별' },
+    { key: 'by-metric', label: '지표추이' },
   ]
 
   const pullProgress = Math.min(pullY / PULL_THRESHOLD, 1)
@@ -205,14 +205,10 @@ export default function HomePage() {
           />
         )}
         {tab === 'by-metric' && (
-          <ByMetricView
+          <TrendView
             metrics={metrics}
             products={products}
             features={features}
-            view={view}
-            onEdit={handleEdit}
-            onTogglePin={handleTogglePin}
-            onDelete={handleDelete}
           />
         )}
       </div>

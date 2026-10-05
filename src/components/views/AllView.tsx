@@ -17,6 +17,7 @@ export function AllView({ metrics, products, features, view, onEdit, onTogglePin
   return (
     <MetricList
       metrics={metrics}
+      allMetrics={metrics}
       products={products}
       features={features}
       view={view}

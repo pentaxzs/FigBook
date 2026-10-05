@@ -1,12 +1,15 @@
 'use client'
 
+import { useMemo } from 'react'
 import { MetricCard } from './MetricCard'
+import { getSiblingPoints } from '@/lib/utils/trend'
 import type { Metric, Product, Feature } from '@/types'
 
 type ViewMode = 'list' | 'grid'
 
 interface MetricListProps {
   metrics: Metric[]
+  allMetrics: Metric[]
   products: Product[]
   features: Feature[]
   view: ViewMode
@@ -18,9 +21,20 @@ interface MetricListProps {
 const UNKNOWN_PRODUCT: Product = { id: '', user_id: 'local', name: '알 수 없음', order: 0, created_at: '' }
 const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
 
-export function MetricList({ metrics, products, features, view, onEdit, onTogglePin, onDelete }: MetricListProps) {
+export function MetricList({ metrics, allMetrics, products, features, view, onEdit, onTogglePin, onDelete }: MetricListProps) {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
+
+  const trendMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof getSiblingPoints>>()
+    for (const m of metrics) {
+      const key = `${m.product_id}:${m.feature_id}:${m.name}`
+      if (!map.has(key)) {
+        map.set(key, getSiblingPoints(m, allMetrics))
+      }
+    }
+    return map
+  }, [metrics, allMetrics])
 
   const sorted = [...metrics].sort((a, b) => {
     if (a.is_pinned && !b.is_pinned) return -1
@@ -39,7 +53,6 @@ export function MetricList({ metrics, products, features, view, onEdit, onToggle
 
   return (
     <div>
-      {/* 카드 목록 */}
       {view === 'grid' ? (
         <div className="grid grid-cols-2 gap-px bg-border">
           {sorted.map(metric => (
@@ -48,6 +61,7 @@ export function MetricList({ metrics, products, features, view, onEdit, onToggle
               metric={metric}
               product={productMap[metric.product_id] ?? UNKNOWN_PRODUCT}
               feature={featureMap[metric.feature_id] ?? UNKNOWN_FEATURE}
+              trendPoints={trendMap.get(`${metric.product_id}:${metric.feature_id}:${metric.name}`)}
               view="grid"
               onEdit={onEdit}
               onTogglePin={onTogglePin}
@@ -63,6 +77,7 @@ export function MetricList({ metrics, products, features, view, onEdit, onToggle
               metric={metric}
               product={productMap[metric.product_id] ?? UNKNOWN_PRODUCT}
               feature={featureMap[metric.feature_id] ?? UNKNOWN_FEATURE}
+              trendPoints={trendMap.get(`${metric.product_id}:${metric.feature_id}:${metric.name}`)}
               view="list"
               onEdit={onEdit}
               onTogglePin={onTogglePin}
