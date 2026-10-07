@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Check, X } from 'lucide-react'
 import { QuizCard } from '@/components/quiz/QuizCard'
 import { storage } from '@/lib/storage'
@@ -16,29 +16,58 @@ interface AnswerResult {
 
 const UNKNOWN_FEATURE: Feature = { id: '', user_id: '', product_id: '', name: '알 수 없음', order: 0, created_at: '' }
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 function buildQuestions(metrics: Metric[], products: Product[], features: Feature[]): QuizQuestion[] {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
   const directions: QuizDirection[] = ['name-to-value', 'value-to-name']
-  return metrics
-    .filter(m => productMap[m.product_id])
-    .map(m => ({
-      metric: m,
-      product: productMap[m.product_id],
-      feature: featureMap[m.feature_id] ?? UNKNOWN_FEATURE,
-      direction: directions[Math.floor(Math.random() * 2)],
-    }))
-    .sort(() => Math.random() - 0.5)
+  return shuffle(
+    metrics
+      .filter(m => productMap[m.product_id])
+      .map(m => ({
+        metric: m,
+        product: productMap[m.product_id],
+        feature: featureMap[m.feature_id] ?? UNKNOWN_FEATURE,
+        direction: directions[Math.floor(Math.random() * 2)],
+      }))
+  )
+}
+
+function generateChoices(question: QuizQuestion, allMetrics: Metric[]): string[] {
+  const correct = question.direction === 'name-to-value'
+    ? question.metric.value
+    : question.metric.name
+
+  const pool = question.direction === 'name-to-value'
+    ? [...new Set(allMetrics.map(m => m.value))]
+    : [...new Set(allMetrics.map(m => m.name))]
+
+  const wrong = shuffle(pool.filter(v => v !== correct)).slice(0, 3)
+
+  while (wrong.length < 3) {
+    wrong.push(question.direction === 'name-to-value' ? '—' : `지표${wrong.length + 1}`)
+  }
+
+  return shuffle([correct, ...wrong])
 }
 
 function isCorrect(question: QuizQuestion, answer: string): boolean {
   const target = question.direction === 'name-to-value'
     ? question.metric.value
     : question.metric.name
-  return answer.trim().toLowerCase() === target.trim().toLowerCase()
+  return answer === target
 }
 
 export default function QuizPage() {
+  const [allMetrics, setAllMetrics] = useState<Metric[]>([])
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [current, setCurrent] = useState(0)
   const [phase, setPhase] = useState<Phase>('ready')
@@ -47,9 +76,15 @@ export default function QuizPage() {
 
   useEffect(() => {
     Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()]).then(([m, p, f]) => {
+      setAllMetrics(m)
       setQuestions(buildQuestions(m, p, f))
     })
   }, [])
+
+  const choices = useMemo(() => {
+    if (phase !== 'quiz' || !questions[current]) return []
+    return generateChoices(questions[current], allMetrics)
+  }, [phase, current, questions, allMetrics])
 
   const handleAnswer = (answer: string) => {
     const question = questions[current]
@@ -80,7 +115,10 @@ export default function QuizPage() {
     setPhase('quiz')
     setResults([])
     setLastAnswer(null)
-    setQuestions(q => [...q].sort(() => Math.random() - 0.5))
+    setQuestions(q => shuffle([...q].map(qq => ({
+      ...qq,
+      direction: (['name-to-value', 'value-to-name'] as QuizDirection[])[Math.floor(Math.random() * 2)],
+    }))))
   }
 
   if (questions.length === 0) {
@@ -122,7 +160,7 @@ export default function QuizPage() {
         <div className="flex flex-col gap-2 mb-8">
           {results.map((r, i) => (
             <div key={i} className={`p-4 border ${r.correct ? 'border-border bg-muted' : 'border-destructive/30 bg-destructive/5'}`}>
-              <p className="text-xs text-secondary">{r.question.product.name} &gt; {r.question.feature.name} &gt; {r.question.metric.name}</p>
+              <p className="text-xs text-secondary">{r.question.product.name} › {r.question.feature.name} › {r.question.metric.name}</p>
               <p className="text-sm font-mono mt-1">
                 정답: <span className="font-bold">{r.question.direction === 'name-to-value' ? r.question.metric.value : r.question.metric.name}</span>
                 {!r.correct && r.userAnswer && <span className="text-destructive ml-2">내 답: {r.userAnswer}</span>}
@@ -170,6 +208,7 @@ export default function QuizPage() {
     <div className="px-4 py-4">
       <QuizCard
         question={questions[current]}
+        choices={choices}
         onAnswer={handleAnswer}
         onSkip={handleSkip}
         current={current + 1}
