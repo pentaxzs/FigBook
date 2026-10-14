@@ -20,10 +20,22 @@ interface MetricCardProps {
 function formatValue(value: string): string {
   const cleaned = value.replace(/,/g, '').trim()
   const num = Number(cleaned)
-  if (cleaned !== '' && !isNaN(num) && isFinite(num)) {
-    return num.toLocaleString('ko-KR')
+  if (cleaned === '' || isNaN(num) || !isFinite(num)) return value
+  const abs = Math.abs(num)
+  const sign = num < 0 ? '-' : ''
+  if (abs >= 1e12) {
+    const v = abs / 1e12
+    return sign + (Number.isInteger(v) ? v.toString() : v.toFixed(1).replace(/\.0$/, '')) + '조'
   }
-  return value
+  if (abs >= 1e8) {
+    const v = abs / 1e8
+    return sign + (Number.isInteger(v) ? v.toString() : v.toFixed(1).replace(/\.0$/, '')) + '억'
+  }
+  if (abs >= 1e4) {
+    const v = abs / 1e4
+    return sign + (Number.isInteger(v) ? v.toLocaleString('ko-KR') : v.toFixed(1).replace(/\.0$/, '')) + '만'
+  }
+  return num.toLocaleString('ko-KR')
 }
 
 export function MetricCard({ metric, product, feature, view = 'grid', trendPoints, onEdit, onTogglePin, onDelete }: MetricCardProps) {
@@ -42,11 +54,11 @@ export function MetricCard({ metric, product, feature, view = 'grid', trendPoint
         </div>
         <p className="text-xs font-semibold text-foreground leading-tight">{metric.name}</p>
         <div
-          className={`flex items-baseline gap-1 mt-auto ${hasTrend ? 'cursor-pointer' : ''}`}
+          className={`flex items-baseline gap-1 mt-auto overflow-hidden ${hasTrend ? 'cursor-pointer' : ''}`}
           onClick={hasTrend ? () => setShowTrend(v => !v) : undefined}
         >
-          <span className="text-lg font-bold font-mono text-foreground">{formatValue(metric.value)}</span>
-          <span className="text-xs text-secondary">{metric.unit}</span>
+          <span className="text-lg font-bold font-mono text-foreground truncate min-w-0">{formatValue(metric.value)}</span>
+          <span className="text-xs text-secondary shrink-0">{metric.unit}</span>
           {hasTrend && <TrendingUp size={10} className="text-primary ml-auto shrink-0" />}
         </div>
         <p className="text-[10px] text-secondary font-mono">{metric.base_date}</p>
