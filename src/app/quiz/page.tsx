@@ -76,6 +76,7 @@ export default function QuizPage() {
   const [lastAnswer, setLastAnswer] = useState<AnswerResult | null>(null)
   const [results, setResults] = useState<AnswerResult[]>([])
   const [questionCount, setQuestionCount] = useState<number | 'all'>('all')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()]).then(([m, p, f]) => {
@@ -83,6 +84,7 @@ export default function QuizPage() {
       const built = buildQuestions(m, p, f)
       setAllQuestions(built)
       setQuestions(built)
+      setLoaded(true)
     })
   }, [])
 
@@ -130,6 +132,10 @@ export default function QuizPage() {
 
   const handleRestart = () => {
     setPhase('ready')
+  }
+
+  if (!loaded) {
+    return <div className="px-4 py-16 flex justify-center text-secondary"><p className="text-sm">불러오는 중...</p></div>
   }
 
   if (allQuestions.length === 0) {
