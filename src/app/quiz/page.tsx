@@ -8,6 +8,12 @@ import type { Metric, Product, Feature, QuizQuestion, QuizDirection } from '@/ty
 
 type Phase = 'ready' | 'quiz' | 'answer' | 'done'
 
+function formatNumber(str: string): string {
+  const num = Number(str.replace(/,/g, ''))
+  if (isNaN(num) || !isFinite(num)) return str
+  return num.toLocaleString('ko-KR')
+}
+
 interface AnswerResult {
   question: QuizQuestion
   userAnswer: string
@@ -285,8 +291,8 @@ export default function QuizPage() {
                   <p className="text-xs text-secondary">{r.question.product.name} › {r.question.feature.name}</p>
                   <p className="text-sm font-medium mt-0.5">{r.question.metric.name}</p>
                   <p className="text-xs font-mono mt-1">
-                    <span className="text-foreground">정답: {r.question.direction === 'name-to-value' ? r.question.metric.value : r.question.metric.name}</span>
-                    {r.userAnswer && <span className="text-destructive ml-2">내 답: {r.userAnswer}</span>}
+                    <span className="text-foreground">정답: {r.question.direction === 'name-to-value' ? formatNumber(r.question.metric.value) : r.question.metric.name}</span>
+                    {r.userAnswer && <span className="text-destructive ml-2">내 답: {formatNumber(r.userAnswer)}</span>}
                     {!r.userAnswer && <span className="text-secondary ml-2">(건너뜀)</span>}
                   </p>
                 </div>
@@ -306,7 +312,7 @@ export default function QuizPage() {
                 <div key={i} className="p-3 border border-border bg-muted">
                   <p className="text-xs text-secondary">{r.question.product.name} › {r.question.feature.name}</p>
                   <p className="text-sm mt-0.5">
-                    {r.question.metric.name} = <span className="font-mono font-medium">{r.question.metric.value}</span>
+                    {r.question.metric.name} = <span className="font-mono font-medium">{formatNumber(r.question.metric.value)}</span>
                   </p>
                 </div>
               ))}
@@ -356,8 +362,8 @@ export default function QuizPage() {
             }
           </div>
           <p className="text-base font-bold">{correct ? '정답!' : '오답'}</p>
-          {!correct && <p className="text-sm text-secondary mt-2">정답: <span className="font-mono font-bold text-foreground">{correctAnswer}</span></p>}
-          {!correct && userAnswer && <p className="text-sm text-destructive mt-1">내 답: {userAnswer}</p>}
+          {!correct && <p className="text-sm text-secondary mt-2">정답: <span className="font-mono font-bold text-foreground">{formatNumber(correctAnswer)}</span></p>}
+          {!correct && userAnswer && <p className="text-sm text-destructive mt-1">내 답: {formatNumber(userAnswer)}</p>}
         </div>
         <button
           onClick={handleNext}

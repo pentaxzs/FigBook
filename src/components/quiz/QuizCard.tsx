@@ -2,6 +2,12 @@
 
 import type { QuizQuestion } from '@/types'
 
+function formatNumber(str: string): string {
+  const num = Number(str.replace(/,/g, ''))
+  if (isNaN(num) || !isFinite(num)) return str
+  return num.toLocaleString('ko-KR')
+}
+
 interface QuizCardProps {
   question: QuizQuestion
   choices: string[]
@@ -16,7 +22,7 @@ export function QuizCard({ question, choices, onAnswer, onSkip, current, total }
 
   const prompt = direction === 'name-to-value'
     ? `"${metric.name}"의 값은?`
-    : `값이 "${metric.value}${metric.unit ? ' ' + metric.unit : ''}"인 지표는?`
+    : `값이 "${formatNumber(metric.value)}${metric.unit ? ' ' + metric.unit : ''}"인 지표는?`
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,7 +57,7 @@ export function QuizCard({ question, choices, onAnswer, onSkip, current, total }
             <span className="w-6 h-6 flex items-center justify-center border border-border text-xs text-secondary font-mono shrink-0">
               {i + 1}
             </span>
-            <span className="font-mono">{choice}</span>
+            <span className="font-mono">{formatNumber(choice)}</span>
           </button>
         ))}
       </div>
