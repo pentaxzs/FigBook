@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, X, PenLine, ImagePlus } from 'lucide-react'
+import { Plus, PenLine, ImagePlus } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 export function Fab() {
@@ -23,7 +23,7 @@ export function Fab() {
     setOpen(false)
   }, [pathname])
 
-  if (pathname.startsWith('/login') || pathname.startsWith('/auth')) return null
+  if (pathname !== '/') return null
 
   const handleDirect = () => {
     setOpen(false)
@@ -37,11 +37,10 @@ export function Fab() {
 
   return (
     <div ref={fabRef} className="fixed right-4 bottom-20 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      {/* Menu */}
       {open && (
         <>
           <div className="fixed inset-0 bg-black/20" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-[72px] right-0 flex flex-col gap-3 items-end">
+          <div className="absolute right-0 flex flex-col gap-3 items-end" style={{ bottom: 'calc(100% + 16px)' }}>
             <button
               onClick={handleImage}
               className="flex items-center gap-2.5 bg-surface border border-border shadow-lg pl-4 pr-3 py-2.5 rounded-full cursor-pointer hover:bg-muted transition-colors whitespace-nowrap"
@@ -64,7 +63,6 @@ export function Fab() {
         </>
       )}
 
-      {/* FAB button */}
       <button
         onClick={() => setOpen(v => !v)}
         className={`w-14 h-14 flex items-center justify-center rounded-full shadow-lg cursor-pointer transition-all duration-200 ${
