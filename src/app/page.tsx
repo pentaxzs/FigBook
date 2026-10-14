@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Plus, ImagePlus, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
 import { TrendView } from '@/components/views/TrendView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
-import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage'
 import { useAuth } from '@/components/auth/AuthProvider'
 import type { Metric, Product, Feature } from '@/types'
@@ -27,7 +26,7 @@ export default function HomePage() {
   const [features, setFeatures] = useState<Feature[]>([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
-  const [imageParserOpen, setImageParserOpen] = useState(false)
+
   const [refreshing, setRefreshing] = useState(false)
   const [pullY, setPullY] = useState(0)
   const touchStartY = useRef(0)
@@ -52,6 +51,13 @@ export default function HomePage() {
 
   // Load data only after auth is ready (adapter set correctly)
   useEffect(() => { if (ready) load() }, [load, ready])
+
+  // Bottom nav add button event
+  useEffect(() => {
+    const handler = () => { setEditTarget(null); setSheetOpen(true) }
+    window.addEventListener('metricspad:add', handler)
+    return () => window.removeEventListener('metricspad:add', handler)
+  }, [])
 
   // Pull-to-refresh touch handlers
   const touchStartX = useRef(0)
@@ -163,24 +169,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* 추가 버튼 (홈에서만 표시) */}
-        <div className="flex mb-4">
-          <button
-            onClick={() => { setEditTarget(null); setSheetOpen(true) }}
-            className="flex-1 flex items-center justify-center gap-2 bg-foreground text-background text-sm font-medium px-4 py-4 min-h-[52px] cursor-pointer hover:bg-foreground/90 transition-colors"
-          >
-            <Plus size={15} strokeWidth={2} />
-            직접 추가
-          </button>
-          <button
-            onClick={() => setImageParserOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary text-white text-sm font-medium px-4 py-4 min-h-[52px] cursor-pointer hover:bg-primary/90 transition-colors"
-          >
-            <ImagePlus size={15} strokeWidth={1.5} />
-            이미지로 추가
-          </button>
-        </div>
-
         {/* 뷰 */}
         {tab === 'all' && (
           <AllView
@@ -222,12 +210,6 @@ export default function HomePage() {
         onSaved={load}
         onProductsChanged={load}
         onFeaturesChanged={load}
-      />
-      <ParseResultReview
-        open={imageParserOpen}
-        onClose={() => setImageParserOpen(false)}
-        products={products}
-        onSaved={load}
       />
     </>
   )
