@@ -41,7 +41,7 @@ export function Fab() {
       {open && (
         <>
           <div className="fixed inset-0 bg-black/20" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-16 right-0 flex flex-col gap-2 items-end">
+          <div className="absolute bottom-[72px] right-0 flex flex-col gap-3 items-end">
             <button
               onClick={handleImage}
               className="flex items-center gap-2.5 bg-surface border border-border shadow-lg pl-4 pr-3 py-2.5 rounded-full cursor-pointer hover:bg-muted transition-colors whitespace-nowrap"
