@@ -172,13 +172,14 @@ export function AddMetricSheet({
       </div>
 
       {/* 기준날짜 + 카테고리 */}
-      <div>
+      <div className="overflow-hidden">
         <label className="block text-xs font-medium text-gray-600 mb-1">기준 날짜</label>
         <input
           type="month"
           value={form.base_date}
           onChange={e => setForm(f => ({ ...f, base_date: e.target.value }))}
-          className={inputCls}
+          className={`${inputCls} appearance-none`}
+          style={{ maxWidth: '100%', boxSizing: 'border-box' }}
         />
       </div>
       <div>
