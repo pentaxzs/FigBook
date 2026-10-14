@@ -7,6 +7,7 @@ import { AllView } from '@/components/views/AllView'
 import { ByProductView } from '@/components/views/ByProductView'
 import { TrendView } from '@/components/views/TrendView'
 import { AddMetricSheet } from '@/components/metrics/AddMetricSheet'
+import { ParseResultReview } from '@/components/metrics/ParseResultReview'
 import { storage } from '@/lib/storage'
 import { useAuth } from '@/components/auth/AuthProvider'
 import type { Metric, Product, Feature } from '@/types'
@@ -26,6 +27,7 @@ export default function HomePage() {
   const [features, setFeatures] = useState<Feature[]>([])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Metric | null>(null)
+  const [imageParserOpen, setImageParserOpen] = useState(false)
 
   const [refreshing, setRefreshing] = useState(false)
   const [pullY, setPullY] = useState(0)
@@ -52,11 +54,16 @@ export default function HomePage() {
   // Load data only after auth is ready (adapter set correctly)
   useEffect(() => { if (ready) load() }, [load, ready])
 
-  // Bottom nav add button event
+  // FAB add button events
   useEffect(() => {
-    const handler = () => { setEditTarget(null); setSheetOpen(true) }
-    window.addEventListener('metricspad:add', handler)
-    return () => window.removeEventListener('metricspad:add', handler)
+    const onDirect = () => { setEditTarget(null); setSheetOpen(true) }
+    const onImage = () => { setImageParserOpen(true) }
+    window.addEventListener('metricspad:add', onDirect)
+    window.addEventListener('metricspad:add-image', onImage)
+    return () => {
+      window.removeEventListener('metricspad:add', onDirect)
+      window.removeEventListener('metricspad:add-image', onImage)
+    }
   }, [])
 
   // Pull-to-refresh touch handlers
@@ -210,6 +217,12 @@ export default function HomePage() {
         onSaved={load}
         onProductsChanged={load}
         onFeaturesChanged={load}
+      />
+      <ParseResultReview
+        open={imageParserOpen}
+        onClose={() => setImageParserOpen(false)}
+        products={products}
+        onSaved={load}
       />
     </>
   )

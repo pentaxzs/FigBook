@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans, Fira_Code } from 'next/font/google'
 import './globals.css'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { Fab } from '@/components/layout/Fab'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 
 const notoSans = Noto_Sans({
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="max-w-lg mx-auto pt-14 pb-20 min-h-dvh">
             {children}
           </main>
+          <Fab />
           <BottomNav />
         </AuthProvider>
       </body>
