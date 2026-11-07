@@ -4,15 +4,16 @@ import { useState, useEffect, useMemo } from 'react'
 import { Check, X, Target, TrendingDown } from 'lucide-react'
 import { QuizCard } from '@/components/quiz/QuizCard'
 import { storage } from '@/lib/storage'
+import {
+  valueLabel,
+  correctLabel,
+  questionPrompt,
+  questionPath,
+  reaction,
+} from '@/lib/quiz/format'
 import type { Metric, Product, Feature, QuizQuestion, QuizDirection } from '@/types'
 
 type Phase = 'ready' | 'quiz' | 'answer' | 'done'
-
-function formatNumber(str: string): string {
-  const num = Number(str.replace(/,/g, ''))
-  if (isNaN(num) || !isFinite(num)) return str
-  return num.toLocaleString('ko-KR')
-}
 
 interface AnswerResult {
   question: QuizQuestion
@@ -32,10 +33,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
+function randomDirection(): QuizDirection {
+  return (['name-to-value', 'value-to-name'] as QuizDirection[])[Math.floor(Math.random() * 2)]
+}
+
 function buildQuestions(metrics: Metric[], products: Product[], features: Feature[]): QuizQuestion[] {
   const productMap = Object.fromEntries(products.map(p => [p.id, p]))
   const featureMap = Object.fromEntries(features.map(f => [f.id, f]))
-  const directions: QuizDirection[] = ['name-to-value', 'value-to-name']
   return shuffle(
     metrics
       .filter(m => productMap[m.product_id])
@@ -43,18 +47,21 @@ function buildQuestions(metrics: Metric[], products: Product[], features: Featur
         metric: m,
         product: productMap[m.product_id],
         feature: featureMap[m.feature_id] ?? UNKNOWN_FEATURE,
-        direction: directions[Math.floor(Math.random() * 2)],
+        direction: randomDirection(),
       }))
   )
 }
 
+/**
+ * 보기를 만든다. 값 문제의 보기는 단위까지 붙여서 낸다.
+ * 보기들은 서로 다른 지표에서 가져오므로 각자 자기 단위를 달고 와야 한다 —
+ * 정답의 단위를 모든 보기에 붙이면 거짓말이 된다.
+ */
 function generateChoices(question: QuizQuestion, allMetrics: Metric[]): string[] {
-  const correct = question.direction === 'name-to-value'
-    ? question.metric.value
-    : question.metric.name
+  const correct = correctLabel(question)
 
   const pool = question.direction === 'name-to-value'
-    ? [...new Set(allMetrics.map(m => m.value))]
+    ? [...new Set(allMetrics.map(m => valueLabel(m.value, m.unit)))]
     : [...new Set(allMetrics.map(m => m.name))]
 
   const wrong = shuffle(pool.filter(v => v !== correct)).slice(0, 3)
@@ -66,15 +73,9 @@ function generateChoices(question: QuizQuestion, allMetrics: Metric[]): string[]
   return shuffle([correct, ...wrong])
 }
 
-function isCorrect(question: QuizQuestion, answer: string): boolean {
-  const target = question.direction === 'name-to-value'
-    ? question.metric.value
-    : question.metric.name
-  return answer === target
-}
-
 export default function QuizPage() {
   const [allMetrics, setAllMetrics] = useState<Metric[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([])
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [current, setCurrent] = useState(0)
@@ -82,11 +83,14 @@ export default function QuizPage() {
   const [lastAnswer, setLastAnswer] = useState<AnswerResult | null>(null)
   const [results, setResults] = useState<AnswerResult[]>([])
   const [questionCount, setQuestionCount] = useState<number | 'all'>('all')
+  /** 빈 배열이면 전체 */
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     Promise.all([storage.getMetrics(), storage.getProducts(), storage.getFeatures()]).then(([m, p, f]) => {
       setAllMetrics(m)
+      setProducts(p)
       const built = buildQuestions(m, p, f)
       setAllQuestions(built)
       setQuestions(built)
@@ -94,16 +98,33 @@ export default function QuizPage() {
     })
   }, [])
 
+  /** 프로덕트별 문제 수. 0개인 프로덕트는 고를 수 없게 한다. */
+  const countByProduct = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const q of allQuestions) {
+      map.set(q.product.id, (map.get(q.product.id) ?? 0) + 1)
+    }
+    return map
+  }, [allQuestions])
+
+  const pickedQuestions = useMemo(() => {
+    if (selectedProducts.length === 0) return allQuestions
+    return allQuestions.filter(q => selectedProducts.includes(q.product.id))
+  }, [allQuestions, selectedProducts])
+
   const choices = useMemo(() => {
     if (phase !== 'quiz' || !questions[current]) return []
     return generateChoices(questions[current], allMetrics)
   }, [phase, current, questions, allMetrics])
 
+  const toggleProduct = (id: string) => {
+    setSelectedProducts(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    )
+  }
+
   const startQuiz = () => {
-    const shuffled = shuffle([...allQuestions].map(qq => ({
-      ...qq,
-      direction: (['name-to-value', 'value-to-name'] as QuizDirection[])[Math.floor(Math.random() * 2)],
-    })))
+    const shuffled = shuffle(pickedQuestions.map(qq => ({ ...qq, direction: randomDirection() })))
     const sliced = questionCount === 'all' ? shuffled : shuffled.slice(0, questionCount)
     setQuestions(sliced)
     setCurrent(0)
@@ -114,7 +135,11 @@ export default function QuizPage() {
 
   const handleAnswer = (answer: string) => {
     const question = questions[current]
-    const result: AnswerResult = { question, userAnswer: answer, correct: isCorrect(question, answer) }
+    const result: AnswerResult = {
+      question,
+      userAnswer: answer,
+      correct: answer === correctLabel(question),
+    }
     setLastAnswer(result)
     setResults(prev => [...prev, result])
     setPhase('answer')
@@ -136,9 +161,7 @@ export default function QuizPage() {
     handleNext()
   }
 
-  const handleRestart = () => {
-    setPhase('ready')
-  }
+  const handleRestart = () => setPhase('ready')
 
   if (!loaded) {
     return <div className="px-4 py-16 flex justify-center text-secondary"><p className="text-sm">불러오는 중...</p></div>
@@ -154,18 +177,61 @@ export default function QuizPage() {
   }
 
   if (phase === 'ready') {
-    const total = allQuestions.length
+    const available = pickedQuestions.length
+    const selectable = products.filter(p => (countByProduct.get(p.id) ?? 0) > 0)
+
     return (
       <div className="px-4 py-8 flex flex-col items-center gap-8">
         <div className="text-center">
           <p className="text-2xl font-bold text-primary font-mono">퀴즈</p>
-          <p className="text-sm text-secondary mt-2">총 {total}개의 지표가 준비되어 있어요</p>
+          <p className="text-sm text-secondary mt-2">
+            {available}개의 지표가 준비되어 있어요
+          </p>
         </div>
+
+        {selectable.length > 1 && (
+          <div className="w-full">
+            <p className="text-sm font-medium text-foreground mb-3">어떤 프로덕트로 풀까요?</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedProducts([])}
+                aria-pressed={selectedProducts.length === 0}
+                className={`px-3 py-2 text-sm font-medium border transition-colors cursor-pointer min-h-[44px] ${
+                  selectedProducts.length === 0
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border text-secondary hover:border-foreground hover:text-foreground'
+                }`}
+              >
+                전체
+              </button>
+              {selectable.map(p => {
+                const on = selectedProducts.includes(p.id)
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => toggleProduct(p.id)}
+                    aria-pressed={on}
+                    className={`px-3 py-2 text-sm font-medium border transition-colors cursor-pointer min-h-[44px] ${
+                      on
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-secondary hover:border-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {p.name}
+                    <span className="ml-1.5 font-mono text-xs opacity-70">
+                      {countByProduct.get(p.id)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="w-full">
           <p className="text-sm font-medium text-foreground mb-3">몇 문제를 풀까요?</p>
           <div className="grid grid-cols-2 gap-2">
-            {COUNT_OPTIONS.filter(n => n <= total).map(n => (
+            {COUNT_OPTIONS.filter(n => n <= available).map(n => (
               <button
                 key={n}
                 onClick={() => setQuestionCount(n)}
@@ -186,14 +252,15 @@ export default function QuizPage() {
                   : 'border-border text-secondary hover:border-foreground hover:text-foreground'
               }`}
             >
-              전체 ({total}문제)
+              전체 ({available}문제)
             </button>
           </div>
         </div>
 
         <button
           onClick={startQuiz}
-          className="w-full bg-primary text-white py-4 text-base font-semibold cursor-pointer hover:bg-primary/90 transition-colors min-h-[56px]"
+          disabled={available === 0}
+          className="w-full bg-primary text-white py-4 text-base font-semibold cursor-pointer hover:bg-primary/90 transition-colors min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           시작하기
         </button>
@@ -217,12 +284,10 @@ export default function QuizPage() {
       productStats.set(pid, stat)
     }
     const statEntries = [...productStats.values()].sort((a, b) => (a.correct / a.total) - (b.correct / b.total))
-
     const wrongResults = results.filter(r => !r.correct)
 
     return (
       <div className="px-4 py-8">
-        {/* Score */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-4 border-primary mb-4">
             <span className="text-3xl font-bold font-mono text-primary">{pct}%</span>
@@ -235,7 +300,6 @@ export default function QuizPage() {
           </p>
         </div>
 
-        {/* Summary stats */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           <div className="flex flex-col items-center p-3 bg-muted">
             <Check size={16} className="text-foreground mb-1" />
@@ -254,7 +318,6 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Product breakdown */}
         {statEntries.length > 1 && (
           <div className="mb-6">
             <p className="text-sm font-medium mb-2">프로덕트별 정답률</p>
@@ -265,10 +328,7 @@ export default function QuizPage() {
                   <div key={s.name} className="flex items-center gap-3">
                     <span className="text-xs text-secondary w-20 truncate shrink-0">{s.name}</span>
                     <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${rate}%` }}
-                      />
+                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${rate}%` }} />
                     </div>
                     <span className="text-xs font-mono w-10 text-right">{rate}%</span>
                   </div>
@@ -278,7 +338,6 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* Weak areas */}
         {wrongResults.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-1.5 mb-2">
@@ -286,14 +345,21 @@ export default function QuizPage() {
               <p className="text-sm font-medium">틀린 문제</p>
             </div>
             <div className="flex flex-col gap-2">
+              {/*
+                질문을 먼저 적는다. 이전에는 지표 이름과 "정답: ..." 만 있어서
+                무엇을 묻는 문제였는지, 무엇의 답이 그 값인지 알 수 없었다.
+              */}
               {wrongResults.map((r, i) => (
                 <div key={i} className="p-3 border border-destructive/20 bg-destructive/5">
-                  <p className="text-xs text-secondary">{r.question.product.name} › {r.question.feature.name}</p>
-                  <p className="text-sm font-medium mt-0.5">{r.question.metric.name}</p>
-                  <p className="text-xs font-mono mt-1">
-                    <span className="text-foreground">정답: {r.question.direction === 'name-to-value' ? formatNumber(r.question.metric.value) : r.question.metric.name}</span>
-                    {r.userAnswer && <span className="text-destructive ml-2">내 답: {formatNumber(r.userAnswer)}</span>}
-                    {!r.userAnswer && <span className="text-secondary ml-2">(건너뜀)</span>}
+                  <p className="text-xs text-secondary">{questionPath(r.question)}</p>
+                  <p className="text-sm font-medium mt-0.5">{questionPrompt(r.question)}</p>
+                  <p className="text-xs font-mono mt-1.5">
+                    <span className="text-foreground">정답: {correctLabel(r.question)}</span>
+                  </p>
+                  <p className="text-xs font-mono mt-0.5">
+                    {r.userAnswer
+                      ? <span className="text-destructive">내 답: {r.userAnswer}</span>
+                      : <span className="text-secondary">(건너뜀)</span>}
                   </p>
                 </div>
               ))}
@@ -301,7 +367,6 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* Correct list (collapsed) */}
         {score > 0 && (
           <details className="mb-6">
             <summary className="text-sm font-medium cursor-pointer text-secondary hover:text-foreground transition-colors">
@@ -310,9 +375,12 @@ export default function QuizPage() {
             <div className="flex flex-col gap-2 mt-2">
               {results.filter(r => r.correct).map((r, i) => (
                 <div key={i} className="p-3 border border-border bg-muted">
-                  <p className="text-xs text-secondary">{r.question.product.name} › {r.question.feature.name}</p>
+                  <p className="text-xs text-secondary">{questionPath(r.question)}</p>
                   <p className="text-sm mt-0.5">
-                    {r.question.metric.name} = <span className="font-mono font-medium">{formatNumber(r.question.metric.value)}</span>
+                    {r.question.metric.name} ={' '}
+                    <span className="font-mono font-medium">
+                      {valueLabel(r.question.metric.value, r.question.metric.unit)}
+                    </span>
                   </p>
                 </div>
               ))}
@@ -329,11 +397,7 @@ export default function QuizPage() {
           </button>
           <button
             onClick={() => {
-              const wrongQs = wrongResults.map(r => ({
-                ...r.question,
-                direction: (['name-to-value', 'value-to-name'] as QuizDirection[])[Math.floor(Math.random() * 2)],
-              }))
-              setQuestions(shuffle(wrongQs))
+              setQuestions(shuffle(wrongResults.map(r => ({ ...r.question, direction: randomDirection() }))))
               setCurrent(0)
               setResults([])
               setLastAnswer(null)
@@ -351,19 +415,34 @@ export default function QuizPage() {
 
   if (phase === 'answer' && lastAnswer) {
     const { question, userAnswer, correct } = lastAnswer
-    const correctAnswer = question.direction === 'name-to-value' ? question.metric.value : question.metric.name
+    const { face, word } = reaction(correct)
     return (
       <div className="px-4 py-4 flex flex-col gap-6">
-        <div className={`p-6 text-center border ${correct ? 'border-border bg-muted' : 'border-destructive/30 bg-destructive/5'}`}>
-          <div className="flex justify-center mb-2">
-            {correct
-              ? <Check size={20} className="text-foreground" />
-              : <X size={20} className="text-destructive" />
-            }
-          </div>
-          <p className="text-base font-bold">{correct ? '정답!' : '오답'}</p>
-          {!correct && <p className="text-sm text-secondary mt-2">정답: <span className="font-mono font-bold text-foreground">{formatNumber(correctAnswer)}</span></p>}
-          {!correct && userAnswer && <p className="text-sm text-destructive mt-1">내 답: {formatNumber(userAnswer)}</p>}
+        <div
+          className={`p-6 text-center border ${
+            correct ? 'border-border bg-muted' : 'border-destructive/30 bg-destructive/5'
+          }`}
+        >
+          <p className="text-5xl leading-none mb-3 motion-safe:animate-bounce" aria-hidden="true">
+            {face}
+          </p>
+          <p className="text-base font-bold">{word}</p>
+
+          {/* 어떤 문제였는지 같이 보여준다. 정답만 띄우면 무엇의 답인지 모른다. */}
+          <p className="text-xs text-secondary mt-3">{questionPath(question)}</p>
+          <p className="text-sm font-medium mt-0.5">{questionPrompt(question)}</p>
+
+          {!correct && (
+            <>
+              <p className="text-sm text-secondary mt-3">
+                정답: <span className="font-mono font-bold text-foreground">{correctLabel(question)}</span>
+              </p>
+              {userAnswer && (
+                <p className="text-sm text-destructive mt-1 font-mono">내 답: {userAnswer}</p>
+              )}
+              {!userAnswer && <p className="text-sm text-secondary mt-1">(건너뜀)</p>}
+            </>
+          )}
         </div>
         <button
           onClick={handleNext}

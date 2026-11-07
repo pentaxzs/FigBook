@@ -1,12 +1,7 @@
 'use client'
 
 import type { QuizQuestion } from '@/types'
-
-function formatNumber(str: string): string {
-  const num = Number(str.replace(/,/g, ''))
-  if (isNaN(num) || !isFinite(num)) return str
-  return num.toLocaleString('ko-KR')
-}
+import { questionPrompt, questionPath } from '@/lib/quiz/format'
 
 interface QuizCardProps {
   question: QuizQuestion
@@ -18,11 +13,7 @@ interface QuizCardProps {
 }
 
 export function QuizCard({ question, choices, onAnswer, onSkip, current, total }: QuizCardProps) {
-  const { metric, product, feature, direction } = question
-
-  const prompt = direction === 'name-to-value'
-    ? `"${metric.name}"의 값은?`
-    : `값이 "${formatNumber(metric.value)}${metric.unit ? ' ' + metric.unit : ''}"인 지표는?`
+  const { metric, direction } = question
 
   return (
     <div className="flex flex-col gap-6">
@@ -37,27 +28,28 @@ export function QuizCard({ question, choices, onAnswer, onSkip, current, total }
       </div>
 
       <div className="bg-surface border border-border p-6 min-h-[160px] flex flex-col justify-center">
-        <p className="text-[10px] text-secondary mb-2">{product.name} › {feature.name}</p>
+        <p className="text-[10px] text-secondary mb-2">{questionPath(question)}</p>
         {direction === 'name-to-value' && (
           <p className="text-xl font-bold text-foreground mb-1">{metric.name}</p>
         )}
-        <p className="text-base font-semibold text-foreground">{prompt}</p>
+        <p className="text-base font-semibold text-foreground">{questionPrompt(question)}</p>
         {metric.base_date && (
           <p className="text-xs text-secondary mt-2 font-mono">기준: {metric.base_date}</p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
+        {/* 보기는 이미 단위까지 붙은 표기로 들어온다 */}
         {choices.map((choice, i) => (
           <button
             key={i}
             onClick={() => onAnswer(choice)}
-            className="w-full text-left border border-border px-4 py-3.5 text-sm font-medium bg-surface hover:bg-muted active:bg-primary/10 cursor-pointer transition-colors min-h-[48px] flex items-center gap-3"
+            className="w-full text-left border border-border px-4 py-3.5 text-sm font-medium bg-surface hover:bg-muted active:bg-primary/10 active:scale-[0.99] cursor-pointer transition-all min-h-[48px] flex items-center gap-3"
           >
             <span className="w-6 h-6 flex items-center justify-center border border-border text-xs text-secondary font-mono shrink-0">
               {i + 1}
             </span>
-            <span className="font-mono">{formatNumber(choice)}</span>
+            <span className="font-mono">{choice}</span>
           </button>
         ))}
       </div>
